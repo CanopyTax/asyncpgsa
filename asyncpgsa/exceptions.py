@@ -1,0 +1,4 @@
+
+
+class KeyAlreadyExistsError(Exception):
+    pass
