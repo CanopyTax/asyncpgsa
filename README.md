@@ -24,4 +24,4 @@ pip install asyncpgsa
 
 
 ## Contributing
-To contribute or build this locally see [[contributing.md]]
+To contribute or build this locally see [contributing.md](https://github.com/CanopyTax/asyncpgsa/blob/master/contributing.md)
