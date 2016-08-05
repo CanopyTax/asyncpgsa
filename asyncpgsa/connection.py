@@ -14,12 +14,12 @@ _dialect._has_native_hstore = True
 _dialect.paramstyle = 'named'
 
 
-def compile_query(query):
+def compile_query(query, dialect=_dialect):
     if isinstance(query, str):
         return query, ()
     elif isinstance(query, ClauseElement):
         compiled = query.compile(
-            dialect=_dialect,
+            dialect=dialect,
         )
 
         keys = sorted(
