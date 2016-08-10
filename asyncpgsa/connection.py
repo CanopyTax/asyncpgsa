@@ -2,7 +2,7 @@ from asyncpg import connection
 from sqlalchemy.sql import ClauseElement
 from sqlalchemy.dialects import postgresql
 
-from .row import RowGenerator, Row
+from .record import RecordGenerator, Record
 
 _dialect = postgresql.dialect()
 _dialect.implicit_returning = True
@@ -60,7 +60,7 @@ class SAConnection:
     async def execute(self, script, *args, **kwargs) -> str:
         script, params = compile_query(script)
         result = await self.connection.execute(script, *params, *args, **kwargs)
-        return RowGenerator(result)
+        return RecordGenerator(result)
 
     async def prepare(self, query, **kwargs):
         query, params = compile_query(query)
@@ -69,7 +69,7 @@ class SAConnection:
     async def fetch(self, query, *args, **kwargs) -> list:
         query, params = compile_query(query)
         result = await self.connection.fetch(query, *params, *args, **kwargs)
-        return RowGenerator(result)
+        return RecordGenerator(result)
 
     async def fetchval(self, query, *args, **kwargs):
         query, params = compile_query(query)
@@ -78,7 +78,7 @@ class SAConnection:
     async def fetchrow(self, query, *args, **kwargs):
         query, params = compile_query(query)
         result = await self.connection.fetchrow(query, *params, *args, **kwargs)
-        return Row(result)
+        return Record(result)
 
     @classmethod
     def from_connection(cls, connection_):

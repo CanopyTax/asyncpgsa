@@ -84,7 +84,7 @@ async def test_use_sa_core_objects():
         assert hasattr(row, 'hasindexes')
 
 
-async def test_with_withou_async_should_throw_exception():
+async def test_with_without_async_should_throw_exception():
     pool = await _get_pool()
 
     try:

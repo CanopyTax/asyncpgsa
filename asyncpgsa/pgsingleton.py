@@ -1,6 +1,6 @@
 from .pool import create_pool
 from .connection import compile_query
-from .row import Row
+from .record import Record
 """
 this is a high level singleton for managing a pool
 """
@@ -123,7 +123,7 @@ class CursorIterator:
         return self
 
     async def __anext__(self):
-        return Row(await self.iterator.__anext__())
+        return Record(await self.iterator.__anext__())
 
 
 class CursorInterface:

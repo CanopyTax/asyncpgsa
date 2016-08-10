@@ -1,7 +1,10 @@
 
 
-class Row:
+class Record:
     __slots__ = ('row',)
+
+    def __str__(self):
+        return str(self.row)
 
     def __init__(self, row):
         self.row = row
@@ -14,7 +17,7 @@ class Row:
                                  .format(item))
 
 
-class RowGenerator:
+class RecordGenerator:
     __slots__ = ('data', 'iter')
 
     def __init__(self, data):
@@ -25,4 +28,4 @@ class RowGenerator:
         return self
 
     def __next__(self):
-        return Row(next(self.iter))
+        return Record(next(self.iter))
