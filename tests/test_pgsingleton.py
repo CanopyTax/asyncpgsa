@@ -62,6 +62,14 @@ async def test_pg_query_with_bad_with_statement():
         assert str(e) == 'Must use "async with"'
 
 
+async def test_pg_query_with_no_results():
+    await _init()
+
+    ps = pg.query("select * from pg_tables WHERE tablename='bob'")
+    async with ps as cursor:
+        async for row in cursor:
+            raise Exception('Should not have hit this line')
+
 async def test_fetch():
     await _init()
 
