@@ -1,6 +1,7 @@
 from asyncpg import connection
 from sqlalchemy.sql import ClauseElement
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.sql.dml import Insert as InsertObject
 
 from .record import RecordGenerator, Record
 
@@ -79,6 +80,16 @@ class SAConnection:
         query, params = compile_query(query)
         result = await self.connection.fetchrow(query, *params, *args, **kwargs)
         return Record(result)
+
+    async def insert(self, query, *args, id_col_name: str = 'id', **kwargs):
+        if (not isinstance(query, InsertObject)) or \
+                (not isinstance(query, str)):
+            raise ValueError('Query must be an insert object or raw sql string')
+        query, params = compile_query(query)
+        if id_col_name is not None:
+            query += ' RETURNING ' + id_col_name
+
+        return await self.fetchval(query, *params, *args, **kwargs)
 
     @classmethod
     def from_connection(cls, connection_):
