@@ -70,6 +70,7 @@ async def test_pg_query_with_no_results():
         async for row in cursor:
             raise Exception('Should not have hit this line')
 
+
 async def test_fetch():
     await _init()
 
