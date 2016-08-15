@@ -82,8 +82,8 @@ class SAConnection:
         return Record(result)
 
     async def insert(self, query, *args, id_col_name: str = 'id', **kwargs):
-        if (not isinstance(query, InsertObject)) or \
-                (not isinstance(query, str)):
+        if not (isinstance(query, InsertObject) or
+                isinstance(query, str)):
             raise ValueError('Query must be an insert object or raw sql string')
         query, params = compile_query(query)
         if id_col_name is not None:
