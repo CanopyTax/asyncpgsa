@@ -3,12 +3,12 @@ from setuptools import setup
 
 setup(
     name='asyncpgsa',
-    version='0.2.0',
+    version='0.2.1',
     install_requires=[
         'asyncpg',
         'sqlalchemy',
     ],
-    packages=['asyncpgsa'],
+    packages=['asyncpgsa', 'asyncpgsa.testing'],
     url='https://github.com/canopytax/asyncpgsa',
     license='Apache 2.0',
     author='nhumrich',
