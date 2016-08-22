@@ -1,4 +1,3 @@
-import asyncpg
 from asyncpg.pool import Pool
 
 from .transactionmanager import ConnectionTransactionContextManager
@@ -16,10 +15,7 @@ class SAPool(Pool):
         return ConnectionTransactionContextManager(self, **kwargs)
 
     def begin(self, **kwargs):
-        """
-        an alias for self.transaction()
-        :return:
-        """
+        """ an alias for self.transaction() """
         return self.transaction(**kwargs)
 
 

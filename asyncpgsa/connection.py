@@ -41,7 +41,7 @@ def compile_query(query, dialect=_dialect):
 class SAConnection:
     __slots__ = ('connection', 'pool')
 
-    def __init__(self, connection_):
+    def __init__(self, connection_: connection):
         self.connection = connection_
         self.pool = None
 
