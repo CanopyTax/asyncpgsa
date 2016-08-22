@@ -1,5 +1,6 @@
 from asyncio import Queue
 
+from asyncpgsa import compile_query
 from .mockpreparedstmt import MockPreparedStatement
 
 
@@ -8,8 +9,8 @@ class MockConnection:
         self.results = Queue()
         self.completed_queries = []
 
-    async def general_query(self, *args, **kwargs):
-        self.completed_queries.append((args, kwargs))
+    async def general_query(self, query, *args, **kwargs):
+        self.completed_queries.append((query, *args, kwargs))
         return self.results.get_nowait()
 
     def __getattr__(self, item):
