@@ -15,14 +15,17 @@ class MockPreparedStatement:
 
 
 class MockCursor:
-    def __init__(self, list):
-        self.iterator = iter(list)
+    def __init__(self, list_):
+        self.iterator = iter(list_)
 
     async def __aiter__(self):
         return self
 
     async def __anext__(self):
-        return next(list)
+        try:
+            return next(self.iterator)
+        except StopIteration:
+            raise StopAsyncIteration
 
 
 
