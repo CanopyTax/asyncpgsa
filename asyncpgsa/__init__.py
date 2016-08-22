@@ -2,6 +2,6 @@ from .pool import create_pool
 from .pgsingleton import PG
 from .connection import compile_query
 
-__version__ = '0.1.5'
+__version__ = '0.2.0'
 pg = PG()
 
