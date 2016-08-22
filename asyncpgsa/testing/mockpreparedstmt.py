@@ -18,7 +18,7 @@ class MockCursor:
     def __init__(self, list_):
         self.iterator = iter(list_)
 
-    async def __aiter__(self):
+    def __aiter__(self):
         return self
 
     async def __anext__(self):
