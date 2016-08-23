@@ -33,5 +33,5 @@ class MockSAPool(SAPool):
         q, a = compile_query(query)
         return self.connection.general_query(q, *args, **kwargs)
 
-    async def transaction(self, **kwargs):
+    def transaction(self, **kwargs):
         return MockTransactionManager(self, self.connection)
