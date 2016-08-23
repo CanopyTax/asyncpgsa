@@ -70,6 +70,10 @@ class PG:
                 query, *args, column=column, timeout=timeout)
         return results
 
+    async def insert(self, query, *args, id_col_name: str = 'id', **kwargs):
+        async with self.pool.transaction(**kwargs) as conn:
+            return await conn.insert(query, *args, id_col_name, **kwargs)
+
     def transaction(self, **kwargs):
         # not async because this returns a context manager
         return self.pool.transaction(**kwargs)
