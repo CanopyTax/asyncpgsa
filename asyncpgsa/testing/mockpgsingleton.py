@@ -8,7 +8,6 @@ from .mockpool import MockSAPool
 from .mockconnection import MockConnection
 
 
-
 class MockPG:
     def __init__(self):
         self.connection = SAConnection(MockConnection())
@@ -31,6 +30,9 @@ class MockPG:
     def __getattr__(self, item):
         if item in ('execute', 'fetch', 'fetchval', 'fetchrow'):
             return getattr(self.connection, item)
+
+    def transaction(self, **kwargs):
+        return self.__pool.transaction(**kwargs)
 
 
 class MockQueryContextManager:

@@ -70,15 +70,15 @@ class PG:
                 query, *args, column=column, timeout=timeout)
         return results
 
-    def transaction(self, *args, **kwargs):
+    def transaction(self, **kwargs):
         # not async because this returns a context manager
-        return self.pool.transaction(*args, **kwargs)
+        return self.pool.transaction(**kwargs)
 
-    def begin(self, *args, **kwargs):
+    def begin(self, **kwargs):
         """
         alias for transaction
         """
-        return self.transaction(*args, **kwargs)
+        return self.transaction(**kwargs)
 
 
 class QueryContextManager:
