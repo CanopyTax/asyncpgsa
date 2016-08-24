@@ -11,11 +11,12 @@ class ConnectionTransactionContextManager:
 
     """
 
-    __slots__ = ('pool', 'connection', 'transaction', 'timeout', 'trans_kwargs')
+    __slots__ = ('pool', 'acquire_context', 'transaction',
+                 'timeout', 'trans_kwargs')
 
     def __init__(self, pool, timeout=None, **kwargs):
         self.pool = pool
-        self.connection = None
+        self.acquire_context = None
         self.transaction = None
         self.timeout = timeout
         self.trans_kwargs = kwargs
@@ -27,12 +28,12 @@ class ConnectionTransactionContextManager:
         pass
 
     async def __aenter__(self):
-        self.connection = await self.pool.acquire(timeout=self.timeout)
-        self.transaction = self.connection.transaction(**self.trans_kwargs)
-        con = await self.connection.__aenter__()
+        self.acquire_context = self.pool.acquire(timeout=self.timeout)
+        con = await self.acquire_context.__aenter__()
+        self.transaction = con.transaction(**self.trans_kwargs)
         await self.transaction.__aenter__()
         return con
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.transaction.__aexit__(exc_type, exc_val, exc_tb)
-        await self.connection.__aexit__(exc_type, exc_val, exc_tb)
+        await self.acquire_context.__aexit__(exc_type, exc_val, exc_tb)

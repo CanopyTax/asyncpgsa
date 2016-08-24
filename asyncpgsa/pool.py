@@ -7,8 +7,9 @@ from .connection import SAConnection
 class SAPool(Pool):
     async def _new_connection(self, timeout=None):
         con = await super()._new_connection()
+        self._connections.remove(con)
         con = SAConnection.from_connection(con)
-        con.pool = self
+        self._connections.add(con)
         return con
 
     def transaction(self, **kwargs):

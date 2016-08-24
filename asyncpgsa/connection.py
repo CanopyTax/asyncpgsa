@@ -39,24 +39,14 @@ def compile_query(query, dialect=_dialect):
 
 
 class SAConnection:
-    __slots__ = ('connection', 'pool')
+    __slots__ = ('connection',)
 
     def __init__(self, connection_: connection):
         self.connection = connection_
-        self.pool = None
 
     def __getattr__(self, attr, *args, **kwargs):
         # getattr is only called when attr is NOT found
         return getattr(self.connection, attr)
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if self.pool:
-            await self.pool.release(self)
-        else:
-            await self.close()
 
     async def execute(self, script, *args, **kwargs) -> str:
         script, params = compile_query(script)

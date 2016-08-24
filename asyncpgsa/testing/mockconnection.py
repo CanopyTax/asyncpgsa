@@ -1,6 +1,5 @@
 from asyncio import Queue
 
-from asyncpgsa import compile_query
 from .mockpreparedstmt import MockPreparedStatement
 
 
@@ -19,12 +18,6 @@ class MockConnection:
 
         raise Exception('Sorry, {} doesnt exist yet. '
                         'Consider making a PR.'.format(item))
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        pass
 
     async def prepare(self, query, *, timeout=None):
         return MockPreparedStatement(self, query, None)
