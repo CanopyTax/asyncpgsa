@@ -15,7 +15,7 @@ _dialect._has_native_hstore = True
 _dialect.paramstyle = 'named'
 
 
-def compile_query(query, dialect=_dialect):
+def compile_query(query, dialect=_dialect, inline=False):
     if isinstance(query, str):
         return query, ()
     elif isinstance(query, ClauseElement):
@@ -32,9 +32,14 @@ def compile_query(query, dialect=_dialect):
         params = []
         for i, tup in enumerate(keys):
             _, k = tup
-            final = final.replace(':' + k, '$' + str(i + 1))
-            params.append(compiled.params[k])
+            if inline:
+                final = final.replace(':' + k, compiled.params[k])
+            else:
+                final = final.replace(':' + k, '$' + str(i + 1))
+                params.append(compiled.params[k])
 
+        if inline:
+            return final
         return final, params
 
 
