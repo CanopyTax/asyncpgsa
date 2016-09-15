@@ -5,7 +5,7 @@ you will need to clone the directory first,
 then, you need to install dev dependencies
 
 ```
-pip install -r dev-requirements
+pip install -r dev-requirements.txt
 ```
 
 and lastly install library as a local dependency
