@@ -15,32 +15,41 @@ _dialect._has_native_hstore = True
 _dialect.paramstyle = 'named'
 
 
+def replace_keys(keys, querystring, params, inline=False):
+    new_query = querystring
+    new_params = []
+    for key, value in enumerate(keys):
+        if inline:
+            new_query = new_query.replace(':' + value, params[key][1], 1)
+        else:
+            new_query = new_query.replace(':' + value, '$' + str(key + 1), 1)
+            new_params.append(params[key][1])
+
+    return new_query, new_params
+
+
+def get_keys(compiled):
+    import re
+    pattern = ':(\w+)(?:\W|)'
+    p = re.compile(pattern, re.M)
+    keys = re.findall(p, compiled.string)
+    params = []
+    for i in keys:
+        params.append((i, compiled.params[i]))
+    return keys, params
+
+
 def compile_query(query, dialect=_dialect, inline=False):
     if isinstance(query, str):
         return query, ()
     elif isinstance(query, ClauseElement):
-        compiled = query.compile(
-            dialect=dialect,
-        )
-
-        keys = sorted(
-            {compiled.string.find(':' + k): k
-             for k in compiled.params.keys()
-             }.items())
-
-        final = compiled.string
-        params = []
-        for i, tup in enumerate(keys):
-            _, k = tup
-            if inline:
-                final = final.replace(':' + k, compiled.params[k])
-            else:
-                final = final.replace(':' + k, '$' + str(i + 1))
-                params.append(compiled.params[k])
+        compiled = query.compile(dialect=dialect)
+        keys, params = get_keys(compiled)
+        new_query, new_params = replace_keys(keys, compiled.string, params)
 
         if inline:
-            return final
-        return final, params
+            return new_query
+        return new_query, new_params
 
 
 class SAConnection:
