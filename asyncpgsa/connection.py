@@ -2,7 +2,7 @@ from asyncpg import connection
 from sqlalchemy.sql import ClauseElement
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql.dml import Insert as InsertObject
-
+import re
 from .record import RecordGenerator, Record
 
 _dialect = postgresql.dialect()
@@ -13,34 +13,49 @@ _dialect._backslash_escapes = False
 _dialect.supports_sane_multi_rowcount = True  # psycopg 2.0.9+
 _dialect._has_native_hstore = True
 _dialect.paramstyle = 'named'
+_pattern = r':(\w+)(?:\W|)'
+_compiled_pattern = re.compile(_pattern, re.M)
+
+
+class MissingParameterError(KeyError):
+    """ This error gets thrown when a parameter is missing in a query """
+
+
+def _replace_keys(querystring, params, inline=False):
+    new_params = []
+    for index, param in enumerate(params):
+        name, value = param
+        if inline:
+            querystring = querystring.replace(':' + name, value, 1)
+        else:
+            querystring = querystring.replace(':' + name,
+                                              '$' + str(index + 1), 1)
+            new_params.append(value)
+
+    return querystring, new_params
+
+
+def _get_keys(compiled):
+    p = _compiled_pattern
+    keys = re.findall(p, compiled.string)
+    try:
+        params = [(i, compiled.params[i]) for i in keys]
+    except KeyError as e:
+        raise MissingParameterError('Parameter {} missing'.format(e))
+    return params
 
 
 def compile_query(query, dialect=_dialect, inline=False):
     if isinstance(query, str):
         return query, ()
     elif isinstance(query, ClauseElement):
-        compiled = query.compile(
-            dialect=dialect,
-        )
-
-        keys = sorted(
-            {compiled.string.find(':' + k): k
-             for k in compiled.params.keys()
-             }.items())
-
-        final = compiled.string
-        params = []
-        for i, tup in enumerate(keys):
-            _, k = tup
-            if inline:
-                final = final.replace(':' + k, compiled.params[k])
-            else:
-                final = final.replace(':' + k, '$' + str(i + 1))
-                params.append(compiled.params[k])
+        compiled = query.compile(dialect=dialect)
+        params = _get_keys(compiled)
+        new_query, new_params = _replace_keys(compiled.string, params)
 
         if inline:
-            return final
-        return final, params
+            return new_query
+        return new_query, new_params
 
 
 class SAConnection:

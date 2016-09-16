@@ -2,10 +2,11 @@
 
 you will need to clone the directory first, 
 
-then, you need to install dev dependencies
+then, you need to install dependencies
 
 ```
-pip install -r dev-requirements
+pip install -r dev-requirements.txt
+python setup.py -q install
 ```
 
 and lastly install library as a local dependency
