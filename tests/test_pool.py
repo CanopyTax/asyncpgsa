@@ -1,50 +1,42 @@
-import pytest
 import asyncpgsa
+import pytest
 import sqlalchemy as sa
 
 from . import HOST, PORT, USER, PASS
 
-async def _get_pool():
-    return await asyncpgsa.create_pool(
-        host=HOST,
-        port=PORT,
-        database='postgres',
-        user=USER,
-        # loop=event_loop,
-        password=PASS,
-        min_size=1,
-        max_size=10)
 
-pytestmark = pytest.mark.asyncio
+@pytest.fixture(scope='function')
+def pool(event_loop):
+    _pool = event_loop.run_until_complete(asyncpgsa.create_pool(host=HOST,
+                                                                port=PORT,
+                                                                database='postgres',
+                                                                user=USER,
+                                                                password=PASS,
+                                                                min_size=1,
+                                                                max_size=10))
+    yield _pool
 
-async def test_pool_basic():
 
-    pool = await _get_pool()
-
+async def test_pool_basic(pool):
     con = await pool.acquire()
-    result = await con.fetch('select * from sqrt(16)')
+    result = await con.fetch('SELECT * FROM sqrt(16)')
     assert next(result).sqrt == 4.0
     await pool.close()
 
 
-async def test_pool_connection_transaction_context_manager():
-
-    pool = await _get_pool()
-
+async def test_pool_connection_transaction_context_manager(pool):
     async with pool.transaction() as conn:
-        result = await conn.fetch('select * from sqrt(16)')
+        result = await conn.fetch('SELECT * FROM sqrt(16)')
 
     assert next(result).sqrt == 4.0
 
 
-async def test_use_sqlalchemy_with_escaped_params():
+async def test_use_sqlalchemy_with_escaped_params(pool):
     """
     Use sqlalchemy with escaped params
     Make sure that the escaped parameters get used in the right order
     :return:
     """
-    pool = await _get_pool()
-
     query = sa.select('*') \
         .select_from(sa.text('sqrt(:num) as a')) \
         .select_from(sa.text('sqrt(:a2) as b')) \
@@ -59,9 +51,7 @@ async def test_use_sqlalchemy_with_escaped_params():
     assert row.c == 5.0
 
 
-async def test_use_sa_core_objects():
-    pool = await _get_pool()
-
+async def test_use_sa_core_objects(pool):
     pg_tables = sa.Table(
         'pg_tables', sa.MetaData(),
         sa.Column('schemaname'),
@@ -84,16 +74,11 @@ async def test_use_sa_core_objects():
         assert hasattr(row, 'hasindexes')
 
 
-async def test_with_without_async_should_throw_exception():
-    pool = await _get_pool()
-
+async def test_with_without_async_should_throw_exception(pool):
     try:
         with pool.transaction() as conn:
-            result = await conn.fetch('select * from sqrt(16)')
+            result = await conn.fetch('SELECT * FROM sqrt(16)')
 
         raise Exception('Should have thrown SyntaxError')
     except SyntaxError as e:
         assert str(e) == 'Must use "async with" for a transaction'
-
-
-
