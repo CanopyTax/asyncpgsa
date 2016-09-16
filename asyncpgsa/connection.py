@@ -18,7 +18,7 @@ _compiled_pattern = re.compile(_pattern, re.M)
 
 
 class MissingParameterError(KeyError):
-    pass
+    """ This error gets thrown when a parameter is missing in a query """
 
 
 def _replace_keys(querystring, params, inline=False):
@@ -41,7 +41,7 @@ def _get_keys(compiled):
     try:
         params = [(i, compiled.params[i]) for i in keys]
     except KeyError as e:
-        raise MissingParameterError(str(e))
+        raise MissingParameterError('Parameter {} missing'.format(e))
     return params
 
 
