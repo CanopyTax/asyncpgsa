@@ -2,13 +2,13 @@ import pytest
 from asyncpgsa import pg
 import sqlalchemy as sa
 
-from . import HOST, PORT, USER, PASS
+from . import HOST, PORT, USER, PASS, DB_NAME
 
 async def _init():
     await pg.init(
             host=HOST,
             port=PORT,
-            database='postgres',
+            database=DB_NAME,
             user=USER,
             # loop=loop,
             password=PASS,
