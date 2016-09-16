@@ -17,6 +17,10 @@ _pattern = r':(\w+)(?:\W|)'
 _compiled_pattern = re.compile(_pattern, re.M)
 
 
+class MissingParameterError(KeyError):
+    pass
+
+
 def _replace_keys(querystring, params, inline=False):
     new_params = []
     for index, param in enumerate(params):
@@ -36,8 +40,8 @@ def _get_keys(compiled):
     keys = re.findall(p, compiled.string)
     try:
         params = [(i, compiled.params[i]) for i in keys]
-    except KeyError:
-        raise KeyError('Missing parameter.')
+    except KeyError as e:
+        raise MissingParameterError(str(e))
     return params
 
 
