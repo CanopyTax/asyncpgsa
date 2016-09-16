@@ -17,14 +17,16 @@ _pattern = r':(\w+)(?:\W|)'
 _compiled_pattern = re.compile(_pattern, re.M)
 
 
-def _replace_keys(keys, querystring, params, inline=False):
+def _replace_keys(querystring, params, inline=False):
     new_params = []
-    for key, value in enumerate(keys):
+    for index, param in enumerate(params):
+        name, value = param
         if inline:
-            querystring = querystring.replace(':' + value, params[key][1], 1)
+            querystring = querystring.replace(':' + name, value, 1)
         else:
-            querystring = querystring.replace(':' + value, '$' + str(key + 1), 1)
-            new_params.append(params[key][1])
+            querystring = querystring.replace(':' + name,
+                                              '$' + str(index + 1), 1)
+            new_params.append(value)
 
     return querystring, new_params
 
@@ -36,7 +38,7 @@ def _get_keys(compiled):
         params = [(i, compiled.params[i]) for i in keys]
     except KeyError:
         raise KeyError('Missing parameter.')
-    return keys, params
+    return params
 
 
 def compile_query(query, dialect=_dialect, inline=False):
@@ -44,8 +46,8 @@ def compile_query(query, dialect=_dialect, inline=False):
         return query, ()
     elif isinstance(query, ClauseElement):
         compiled = query.compile(dialect=dialect)
-        keys, params = _get_keys(compiled)
-        new_query, new_params = _replace_keys(keys, compiled.string, params)
+        params = _get_keys(compiled)
+        new_query, new_params = _replace_keys(compiled.string, params)
 
         if inline:
             return new_query

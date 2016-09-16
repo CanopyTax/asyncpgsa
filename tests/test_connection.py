@@ -14,8 +14,8 @@ async def test__replace_keys():
         .values(id=None) \
         .where(file_table.c.id.in_(ids))
     compiled = query.compile(dialect=connection._dialect)
-    keys, params = connection._get_keys(compiled)
-    new_query = connection._replace_keys(keys, compiled.string, params)
+    params = connection._get_keys(compiled)
+    new_query = connection._replace_keys(compiled.string, params)
     assert new_query[0] == 'UPDATE meows SET id=$1 WHERE meows.id IN ' \
                            '($2, $3, $4, $5, $6, $7, $8, $9, $10)'
     assert new_query[1] == [None, 1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -30,11 +30,11 @@ async def test__get_keys():
 
 
 async def test_compile_query(monkeypatch):
-    def mock(x):
-        return 'bob', 'sally'
+    def mock(*args):
+        return 'bob'
     monkeypatch.setattr('asyncpgsa.connection._get_keys', mock)
 
-    def mock(x, y, z):
+    def mock(*args):
         return 'bob', 'sally'
     monkeypatch.setattr('asyncpgsa.connection._replace_keys',
                         mock)
