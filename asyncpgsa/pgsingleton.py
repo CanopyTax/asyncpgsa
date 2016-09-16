@@ -66,9 +66,8 @@ class PG:
 
     async def fetchval(self, query, *args, timeout=None, column=0, **kwargs):
         async with self.pool.transaction(**kwargs) as conn:
-            results = await conn.fetchval(
+            return await conn.fetchval(
                 query, *args, column=column, timeout=timeout)
-        return results
 
     async def insert(self, *args, id_col_name: str = 'id',
                      timeout=None, **kwargs):

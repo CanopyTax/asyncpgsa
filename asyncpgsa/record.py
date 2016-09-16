@@ -16,6 +16,9 @@ class Record:
             raise AttributeError("'Row' object has no attribute '{}'"
                                  .format(item))
 
+    def __bool__(self):
+        return self.row is not None
+
 
 class RecordGenerator:
     __slots__ = ('data', 'iter')

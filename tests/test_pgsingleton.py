@@ -1,20 +1,27 @@
-import pytest
 from asyncpgsa import pg
+import pytest
 import sqlalchemy as sa
 
 from . import HOST, PORT, USER, PASS, DB_NAME
 
-async def _init():
-    await pg.init(
-            host=HOST,
-            port=PORT,
-            database=DB_NAME,
-            user=USER,
-            # loop=loop,
-            password=PASS,
-            min_size=1,
-            max_size=10
-        )
+
+@pytest.fixture(scope='function', autouse=True)
+def init_pg(event_loop):
+    """
+    Initializes the pg connection before each test in the module.
+    :param event_loop: Active event loop for the test run
+    :return: None
+    """
+    event_loop.run_until_complete(pg.init(
+        host=HOST,
+        port=PORT,
+        database=DB_NAME,
+        user=USER,
+        # loop=loop,
+        password=PASS,
+        min_size=1,
+        max_size=10
+    ))
 
 query = sa.select('*') \
     .select_from(sa.text('sqrt(:num) as a')) \
@@ -23,12 +30,7 @@ query = sa.select('*') \
     .params(num=16, a2=36, z3=25)
 
 
-pytestmark = pytest.mark.asyncio
-
-
 async def test_pg_query_async_with_statement():
-    await _init()
-
     ps = pg.query(query)
     async with ps as cursor:
         async for row in cursor:
@@ -41,10 +43,9 @@ async def test_pg_query_async_with_statement():
 
 
 async def test_pg_query_with_bad_with_statement():
-    await _init()
-
     ps = pg.query(query)
-    try:
+
+    with pytest.raises(SyntaxError) as exc_info:
         with ps as cursor:
             async for row in cursor:
                 assert row.a == 4.0
@@ -55,25 +56,17 @@ async def test_pg_query_with_bad_with_statement():
 
         assert result == 2
 
-        # try:
-        # event_loop.run_until_complete(async_with())
-        raise Exception('Should have thrown exception')
-    except SyntaxError as e:
-        assert str(e) == 'Must use "async with"'
+    assert str(exc_info.value) == 'Must use "async with"'
 
 
 async def test_pg_query_with_no_results():
-    await _init()
-
-    ps = pg.query("select * from pg_tables WHERE tablename='bob'")
+    ps = pg.query("SELECT * FROM pg_tables WHERE tablename='bob'")
     async with ps as cursor:
         async for row in cursor:
             raise Exception('Should not have hit this line')
 
 
 async def test_fetch():
-    await _init()
-
     for row in await pg.fetch(query):
         assert row.a == 4.0
         assert row.b == 6.0
@@ -82,18 +75,32 @@ async def test_fetch():
     assert 1 == 1
 
 
-async def test_fetchrow():
-    await _init()
+async def test_fetch_nonetype():
+    query = "SELECT * FROM pg_tables WHERE tablename='foobar_doesnt_exist'"
+    result = await pg.fetch(query)
+    for r in result:
+        assert False, 'Should not have any data'
 
+
+async def test_fetchrow():
     row = await pg.fetchrow(query)
     assert row.a == 4.0
     assert row.b == 6.0
     assert row.c == 5.0
 
 
-async def test_fetchval():
-    await _init()
+async def test_fetchrow_nonetype():
+    query = "SELECT * FROM pg_tables WHERE tablename='foobar_doesnt_exist'"
+    result = await pg.fetchrow(query)
+    assert not bool(result)
 
+
+async def test_fetchrow_sometype():
+    result = await pg.fetchrow(query)
+    assert bool(result), 'Fetchrow should be truthy with data.'
+
+
+async def test_fetchval():
     value = await pg.fetchval(query, column=2)
     assert value == 5.0
 
@@ -105,16 +112,12 @@ async def test_fetchval():
 
 
 async def test_transaction():
-    await _init()
-
     async with pg.transaction() as conn:
         for row in await conn.fetch(query):
             assert row.a == 4.0
 
 
 async def test_begin():
-    await _init()
-
     async with pg.begin() as conn:
         for row in await conn.fetch(query):
             assert row.a == 4.0
