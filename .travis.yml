@@ -8,6 +8,6 @@ python:
 # command to install dependencies
 install:
   - "pip install -r dev-requirements.txt --upgrade"
-  - python setup.py -q install
+  - ./setup.py develop
 # command to run tests
 script: py.test

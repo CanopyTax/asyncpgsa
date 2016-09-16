@@ -2,7 +2,7 @@ from asyncpg import connection
 from sqlalchemy.sql import ClauseElement
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql.dml import Insert as InsertObject
-
+import re
 from .record import RecordGenerator, Record
 
 _dialect = postgresql.dialect()
@@ -13,29 +13,29 @@ _dialect._backslash_escapes = False
 _dialect.supports_sane_multi_rowcount = True  # psycopg 2.0.9+
 _dialect._has_native_hstore = True
 _dialect.paramstyle = 'named'
+_pattern = r':(\w+)(?:\W|)'
+_compiled_pattern = re.compile(_pattern, re.M)
 
 
-def replace_keys(keys, querystring, params, inline=False):
-    new_query = querystring
+def _replace_keys(keys, querystring, params, inline=False):
     new_params = []
     for key, value in enumerate(keys):
         if inline:
-            new_query = new_query.replace(':' + value, params[key][1], 1)
+            querystring = querystring.replace(':' + value, params[key][1], 1)
         else:
-            new_query = new_query.replace(':' + value, '$' + str(key + 1), 1)
+            querystring = querystring.replace(':' + value, '$' + str(key + 1), 1)
             new_params.append(params[key][1])
 
-    return new_query, new_params
+    return querystring, new_params
 
 
-def get_keys(compiled):
-    import re
-    pattern = ':(\w+)(?:\W|)'
-    p = re.compile(pattern, re.M)
+def _get_keys(compiled):
+    p = _compiled_pattern
     keys = re.findall(p, compiled.string)
-    params = []
-    for i in keys:
-        params.append((i, compiled.params[i]))
+    try:
+        params = [(i, compiled.params[i]) for i in keys]
+    except KeyError:
+        raise KeyError('Missing parameter.')
     return keys, params
 
 
@@ -44,8 +44,8 @@ def compile_query(query, dialect=_dialect, inline=False):
         return query, ()
     elif isinstance(query, ClauseElement):
         compiled = query.compile(dialect=dialect)
-        keys, params = get_keys(compiled)
-        new_query, new_params = replace_keys(keys, compiled.string, params)
+        keys, params = _get_keys(compiled)
+        new_query, new_params = _replace_keys(keys, compiled.string, params)
 
         if inline:
             return new_query
