@@ -1,8 +1,11 @@
-from asyncpg import connection
-from sqlalchemy.sql import ClauseElement
-from sqlalchemy.dialects import postgresql
-from sqlalchemy.sql.dml import Insert as InsertObject
 import re
+
+from asyncpg import connection
+from sqlalchemy.dialects import postgresql
+from sqlalchemy.sql import ClauseElement
+from sqlalchemy.sql.dml import Insert as InsertObject
+
+from .log import query_logger
 from .record import RecordGenerator, Record
 
 _dialect = postgresql.dialect()
@@ -47,11 +50,14 @@ def _get_keys(compiled):
 
 def compile_query(query, dialect=_dialect, inline=False):
     if isinstance(query, str):
+        query_logger.debug(query)
         return query, ()
     elif isinstance(query, ClauseElement):
         compiled = query.compile(dialect=dialect)
         params = _get_keys(compiled)
         new_query, new_params = _replace_keys(compiled.string, params)
+
+        query_logger.debug(new_query)
 
         if inline:
             return new_query
@@ -59,36 +65,36 @@ def compile_query(query, dialect=_dialect, inline=False):
 
 
 class SAConnection:
-    __slots__ = ('connection',)
+    __slots__ = ('_connection',)
 
     def __init__(self, connection_: connection):
-        self.connection = connection_
+        self._connection = connection_
 
     def __getattr__(self, attr, *args, **kwargs):
         # getattr is only called when attr is NOT found
-        return getattr(self.connection, attr)
+        return getattr(self._connection, attr)
 
     async def execute(self, script, *args, **kwargs) -> str:
         script, params = compile_query(script)
-        result = await self.connection.execute(script, *params, *args, **kwargs)
+        result = await self._connection.execute(script, *params, *args, **kwargs)
         return RecordGenerator(result)
 
     async def prepare(self, query, **kwargs):
         query, params = compile_query(query)
-        return await self.connection.prepare(query, **kwargs)
+        return await self._connection.prepare(query, **kwargs)
 
     async def fetch(self, query, *args, **kwargs) -> list:
         query, params = compile_query(query)
-        result = await self.connection.fetch(query, *params, *args, **kwargs)
+        result = await self._connection.fetch(query, *params, *args, **kwargs)
         return RecordGenerator(result)
 
     async def fetchval(self, query, *args, **kwargs):
         query, params = compile_query(query)
-        return await self.connection.fetchval(query, *params, *args, **kwargs)
+        return await self._connection.fetchval(query, *params, *args, **kwargs)
 
     async def fetchrow(self, query, *args, **kwargs):
         query, params = compile_query(query)
-        result = await self.connection.fetchrow(query, *params, *args, **kwargs)
+        result = await self._connection.fetchrow(query, *params, *args, **kwargs)
         return Record(result)
 
     async def insert(self, query, *args, id_col_name: str = 'id', **kwargs):
@@ -102,7 +108,7 @@ class SAConnection:
         return await self.fetchval(query, *params, *args, **kwargs)
 
     @classmethod
-    def from_connection(cls, connection_):
+    def from_connection(cls, connection_: connection):
         if connection_.__class__ == connection.Connection:
             return SAConnection(connection_)
         else:

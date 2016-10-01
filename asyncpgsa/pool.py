@@ -70,7 +70,7 @@ def create_pool(dsn=None, *,
     :return: An instance of :class:`~asyncpg.pool.Pool`.
     """
     return SAPool(dsn,
-                min_size=min_size, max_size=max_size,
-                max_queries=max_queries, loop=loop, setup=setup,
-                **connect_kwargs)
+                  min_size=min_size, max_size=max_size,
+                  max_queries=max_queries, loop=loop, setup=setup,
+                  **connect_kwargs)
 
