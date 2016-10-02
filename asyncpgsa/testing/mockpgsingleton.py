@@ -14,12 +14,12 @@ class MockPG:
         self.__pool = MockSAPool(connection=self.connection)
 
     def get_completed_queries(self):
-        return self.connection.connection.completed_queries
+        return self.connection._connection.completed_queries
 
     def set_database_results(self, *results):
-        self.connection.connection.results = Queue()  # reset queue
+        self.connection._connection.results = Queue()  # reset queue
         for result in results:
-            self.connection.connection.results.put_nowait(result)
+            self.connection._connection.results.put_nowait(result)
 
     def query(self, query, *args, **kwargs):
         compiled_q, compiled_args = compile_query(query)

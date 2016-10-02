@@ -1,4 +1,5 @@
-# from asyncpgsa import pg
+import logging
+
 from asyncpgsa import connection
 import sqlalchemy as sa
 
@@ -45,3 +46,31 @@ async def test_compile_query(monkeypatch):
 
     results = connection.compile_query(query)
     assert ('bob', 'sally') == results
+
+
+async def test_compile_query_debug(caplog):
+    """Validates that the query is printed to stdout
+    when the debug flag is enabled."""
+    ids = list(range(1, 3))
+    query = file_table.update() \
+        .values(id=None) \
+        .where(file_table.c.id.in_(ids))
+
+    with caplog.atLevel(logging.DEBUG, logger='asyncpgsa.query'):
+        results, _ = connection.compile_query(query)
+        msgs = [record.msg for record in caplog.records()]
+        assert results in msgs
+
+
+async def test_compile_query_no_debug(caplog):
+    """Validates that no output is printed when
+    the debug flag is disabled."""
+    ids = list(range(1, 3))
+    query = file_table.update() \
+        .values(id=None) \
+        .where(file_table.c.id.in_(ids))
+
+    with caplog.atLevel(logging.WARNING, logger='asyncpgsa.query'):
+        results, _ = connection.compile_query(query)
+        msgs = [record.msg for record in caplog.records()]
+        assert results not in msgs
