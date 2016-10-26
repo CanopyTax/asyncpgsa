@@ -220,6 +220,48 @@ If you just want to roll you own everything and use asyncpg raw without all thes
 
 
 
+Testing
+=======
+The library includes a testing library as well to make testing
+in your app easier. The testing module mocks out all the database
+calls and never actually hits a database.
+
+Setting up
+^^^^^^^^^^
+In order to setup a mock, all you need to do is use the `MockPG` module in `asyncpgsa.testing`
+Then you need to set the responses that you are expecting.
+Setting the responses is done by calling `mock_pg.set_database_results()` where every argument is a list of dictionaries.
+
+Example test
+++++++++++++
+Here is an example test.::
+
+    from asyncpgsa.testing import MockPG using pytest
+
+    async def test_run_query(monkeypatch)
+       pg = MockPG()
+       pg.set_database_results([{'id': 1}, {'id': 2}])
+       monkeypatch.setattr('mypackage.mymodule.pg', pg)
+       results = await mymodule.run_query()
+
+       assert results[0].id == 1
+       assert results[1].id == 2
+
+And another where there are multiple queries::
+
+    from asyncpgsa.testing import MockPG using pytest
+
+    async def test_run_query(monkeypatch)
+       pg = MockPG()
+       pg.set_database_results([{'id': 1}, {'id': 2}],
+                               [{'id': 28, 'name': 'bob'])
+       monkeypatch.setattr('mypackage.mymodule.pg', pg)
+       results = await mymodule.run_multiple_queries()
+
+       assert results[0].id == 1
+       assert results[1].id == 2
+       assert results[2].name == 'bob'
+
 .. toctree::
    :maxdepth: 2
 
