@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/asyncpgsa/badge/?version=latest)](http://asyncpgsa.readthedocs.io/en/latest/?badge=latest)
+
 # asyncpgsa
 A python library wrapper around asyncpg for use with sqlalchemy
 
