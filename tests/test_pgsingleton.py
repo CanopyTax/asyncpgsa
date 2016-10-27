@@ -33,13 +33,13 @@ query = sa.select('*') \
 async def test_pg_query_async_with_statement():
     ps = pg.query(query)
     async with ps as cursor:
+        row = sentinel = object()
         async for row in cursor:
             assert row.a == 4.0
             assert row.b == 6.0
             assert row.c == 5.0
-            result = 2
-
-        assert result == 2
+        if row is sentinel:
+            pytest.fail('Cursor had no data')
 
 
 async def test_pg_query_with_bad_with_statement():
@@ -65,6 +65,17 @@ async def test_pg_query_with_no_results():
         async for row in cursor:
             raise Exception('Should not have hit this line')
 
+
+async def test_pg_queury_with_await():
+    ps = pg.query(query)
+    results = await ps
+    row = sentinel = object()
+    for row in results:
+        assert row.a == 4.0
+        assert row.b == 6.0
+        assert row.c == 5.0
+    if row is sentinel:
+        pytest.fail('No results')
 
 async def test_fetch():
     for row in await pg.fetch(query):

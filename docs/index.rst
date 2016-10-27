@@ -83,13 +83,23 @@ Before you can run any queries you first have to initialize the pool::
 
 Query
 +++++ 
-Query is for making read only select statements. This method will create a prepared statement for you and return a cursor object that will get a couple rows at a time from the database. This is great for select statements with lots of results.::
+Query is for making read only select statements.
+This method will create a prepared statement for you and return a cursor object that will get a couple rows at a time from the database.
+This is great for select statements with lots of results.
+You can also use query without a cursor and transaction by using await
+::
 
     from asyncpgsa import pg
 
-    async with pg.query(query) as cursor:
+    # using a cursor and and transaction isolation
+    async with pg.query(select_statement) as cursor:
     	async for row in cursor:
             a = row.col_name
+
+    # no cursor or isolation, all results at once
+    results = await pg.query(select_statement)
+    for row in results:
+        a = row.col_name
 
 fetch
 +++++
