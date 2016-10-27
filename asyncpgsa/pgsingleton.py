@@ -1,5 +1,5 @@
 from .pool import create_pool
-from .connection import compile_query
+from .connection import compile_query, RecordGenerator
 from .record import Record
 """
 this is a high level singleton for managing a pool
@@ -39,7 +39,17 @@ class PG:
         and uses a cursor to return the results. So you only get
         so many rows at a time. This can dramatically increase performance
         for queries that have a lot of results/responses as not everything has
-        to be loaded into memory at once
+        to be loaded into memory at once.
+        You can use this with the `await` keyword to not use a cursor.
+
+        Use the following syntax for a cursor
+        async with query() as cursor:
+            async for row in cursor:
+                a = row.col_name
+
+        or the following for a all results and no cursor/transaction:
+        results = await query()
+
         :param query: query to be performed
         :param args: parameters to query (if a string)
         :param callback: a callback to call with the responses
@@ -50,28 +60,26 @@ class PG:
         """
         compiled_q, compiled_args = compile_query(query)
         query, args = compiled_q, compiled_args or args
-        con_manager = self.pool.transaction(readonly=True,
-                                            isolation='serializable')
 
-        return QueryContextManager(con_manager, query, args,
+        return QueryContextManager(self.pool, query, args,
                                    prefetch=prefetch, timeout=timeout)
 
-    async def fetch(self, query, *args, timeout=None, **kwargs):
-        async with self.pool.transaction(**kwargs) as conn:
+    async def fetch(self, query, *args, timeout=None):
+        async with self.pool.acquire() as conn:
             return await conn.fetch(query, *args, timeout=timeout)
 
-    async def fetchrow(self, query, *args, timeout=None, **kwargs):
-        async with self.pool.transaction(**kwargs) as conn:
+    async def fetchrow(self, query, *args, timeout=None):
+        async with self.pool.acquire() as conn:
             return await conn.fetchrow(query, *args, timeout=timeout)
 
-    async def fetchval(self, query, *args, timeout=None, column=0, **kwargs):
-        async with self.pool.transaction(**kwargs) as conn:
+    async def fetchval(self, query, *args, timeout=None, column=0):
+        async with self.pool.acquire() as conn:
             return await conn.fetchval(
                 query, *args, column=column, timeout=timeout)
 
     async def insert(self, *args, id_col_name: str = 'id',
-                     timeout=None, **kwargs):
-        async with self.pool.transaction(**kwargs) as conn:
+                     timeout=None):
+        async with self.pool.acquire() as conn:
             return await conn.insert(
                 *args,
                 id_col_name=id_col_name,
@@ -89,16 +97,18 @@ class PG:
 
 
 class QueryContextManager:
-    __slots__ = ('cm', 'query', 'args', 'prefetch', 'timeout', 'cursor')
+    __slots__ = ('pool', 'query', 'args', 'prefetch', 'timeout', 'cursor',
+                 '_con')
 
-    def __init__(self, con_manager, query, args=None,
+    def __init__(self, pool, query, args=None,
                  prefetch=None, timeout=None):
-        self.cm = con_manager
+        self.pool = pool
         self.cursor = None
         self.query = query
         self.args = args
         self.prefetch = prefetch
         self.timeout = timeout
+        self._con = None
 
     def __enter__(self):
         raise SyntaxError('Must use "async with"')
@@ -107,14 +117,25 @@ class QueryContextManager:
         pass
 
     async def __aenter__(self):
-        con = await self.cm.__aenter__()
+        self._con = self.pool.transaction(readonly=True,
+                                            isolation='serializable')
+        con = await self._con.__aenter__()
         ps = await con.prepare(self.query, timeout=self.timeout)
         self.cursor = ps.cursor(*self.args, prefetch=self.prefetch,
                                 timeout=self.timeout)
         return CursorInterface(self.cursor)
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.cm.__aexit__(exc_type, exc_val, exc_tb)
+        await self._con.__aexit__(exc_type, exc_val, exc_tb)
+
+    async def __run_query(self):
+        async with self.pool.acquire() as con:
+            ps = await con.prepare(self.query, timeout=self.timeout)
+            result = await ps.fetch(*self.args, timeout=self.timeout)
+            return RecordGenerator(result)
+
+    def __await__(self):
+        return self.__run_query().__await__()
 
 
 class CursorIterator:
