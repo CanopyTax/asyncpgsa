@@ -3,7 +3,7 @@ import re
 from asyncpg import connection
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import ClauseElement
-from sqlalchemy.sql.dml import Insert as InsertObject
+from sqlalchemy.sql.dml import Insert as InsertObject, Update as UpdateObject
 
 from .log import query_logger
 from .record import RecordGenerator, Record
@@ -48,11 +48,33 @@ def _get_keys(compiled):
     return params
 
 
+def execute_defaults(query):
+    if isinstance(query, InsertObject) or isinstance(query, UpdateObject):
+        context = {}
+        query.parameters = query.parameters or {}
+        if isinstance(query, InsertObject):
+            for col in query.table.columns:
+                if col.default and not query.parameters.get(col.name):
+                    if col.default.is_scalar:
+                        query.parameters[col.name] = col.default.arg
+                    elif col.default.is_callable:
+                        query.parameters[col.name] = col.default.arg(context)
+
+        elif isinstance(query, UpdateObject):
+            for col in query.table.columns:
+                if col.onupdate and not query.parameters.get(col.name):
+                    if col.onupdate.is_scalar:
+                        query.parameters[col.name] = col.onupdate.arg
+                    elif col.onupdate.is_callable:
+                        query.parameters[col.name] = col.onupdate.arg(context)
+
+
 def compile_query(query, dialect=_dialect, inline=False):
     if isinstance(query, str):
         query_logger.debug(query)
         return query, ()
     elif isinstance(query, ClauseElement):
+        query = execute_defaults(query) # default values for Insert/Update 
         compiled = query.compile(dialect=dialect)
         params = _get_keys(compiled)
         new_query, new_params = _replace_keys(compiled.string, params)
