@@ -67,6 +67,7 @@ def execute_defaults(query):
                         query.parameters[col.name] = col.onupdate.arg
                     elif col.onupdate.is_callable:
                         query.parameters[col.name] = col.onupdate.arg(context)
+    return query
 
 
 def compile_query(query, dialect=_dialect, inline=False):
