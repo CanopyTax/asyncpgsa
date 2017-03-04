@@ -49,24 +49,22 @@ def _get_keys(compiled):
 
 
 def execute_defaults(query):
-    if isinstance(query, InsertObject) or isinstance(query, UpdateObject):
-        context = {}
-        query.parameters = query.parameters or {}
-        if isinstance(query, InsertObject):
-            for col in query.table.columns:
-                if col.default and not query.parameters.get(col.name):
-                    if col.default.is_scalar:
-                        query.parameters[col.name] = col.default.arg
-                    elif col.default.is_callable:
-                        query.parameters[col.name] = col.default.arg(context)
+    if isinstance(query, InsertObject):
+        attr_name = 'default'
+    elif isinstance(query, UpdateObject):
+        attr_name = 'onupdate'
+    else:
+        return query
 
-        elif isinstance(query, UpdateObject):
-            for col in query.table.columns:
-                if col.onupdate and not query.parameters.get(col.name):
-                    if col.onupdate.is_scalar:
-                        query.parameters[col.name] = col.onupdate.arg
-                    elif col.onupdate.is_callable:
-                        query.parameters[col.name] = col.onupdate.arg(context)
+    query.parameters = query.parameters or {}
+    for col in query.table.columns:
+        attr = getattr(col, attr_name)
+        if attr and not query.parameters.get(col.name):
+            if attr.is_scalar:
+                query.parameters[col.name] = attr.arg
+            elif col.default.is_callable:
+                query.parameters[col.name] = attr.arg({})
+
     return query
 
 
