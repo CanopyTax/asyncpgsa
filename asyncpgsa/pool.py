@@ -25,6 +25,7 @@ def create_pool(dsn=None, *,
                 max_size=10,
                 max_queries=50000,
                 setup=None,
+                init=None,
                 loop=None,
                 **connect_kwargs):
     r"""Create a connection pool.
@@ -65,12 +66,16 @@ def create_pool(dsn=None, *,
                             An example use case would be to automatically
                             set up notifications listeners for all connections
                             of a pool.
+    :param coroutine init: A coroutine to initialize a connection
+                            when it is created. An example use case would
+                            be to setup type codecs with
+                            set_builtin_type_codec() or set_type_codec()
     :param loop: An asyncio event loop instance.  If ``None``, the default
                  event loop will be used.
     :return: An instance of :class:`~asyncpg.pool.Pool`.
     """
     return SAPool(dsn,
                   min_size=min_size, max_size=max_size,
-                  max_queries=max_queries, loop=loop, setup=setup,
+                  max_queries=max_queries, loop=loop, setup=setup, init=init,
                   **connect_kwargs)
 
