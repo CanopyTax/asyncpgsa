@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='asyncpgsa',
-    version='0.8.1',
+    version=__import__('asyncpgsa').__version__,
     install_requires=[
         'asyncpg~=0.9.0',
         'sqlalchemy',
