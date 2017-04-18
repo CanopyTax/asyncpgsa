@@ -32,3 +32,6 @@ class RecordGenerator:
 
     def __next__(self):
         return Record(next(self.iter))
+
+    def __bool__(self):
+        return bool(self.data)

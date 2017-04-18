@@ -82,3 +82,9 @@ async def test_with_without_async_should_throw_exception(pool):
         raise Exception('Should have thrown SyntaxError')
     except SyntaxError as e:
         assert str(e) == 'Must use "async with" for a transaction'
+
+async def test_falsyness_of_rows_on_fetch(pool):
+    async with pool.acquire() as conn:
+        rows = await conn.fetch('SELECT * FROM pg_stat_activity '
+                                  'WHERE pid=400')
+        assert bool(rows) == False
