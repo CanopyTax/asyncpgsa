@@ -1,14 +1,14 @@
 import re
 
 from asyncpg import connection
-from sqlalchemy.dialects import postgresql
+from sqlalchemy.dialects.postgresql import pypostgresql
 from sqlalchemy.sql import ClauseElement
 from sqlalchemy.sql.dml import Insert as InsertObject, Update as UpdateObject
 
 from .log import query_logger
 from .record import RecordGenerator, Record
 
-_dialect = postgresql.dialect()
+_dialect = pypostgresql.dialect()
 _dialect.implicit_returning = True
 _dialect.supports_native_enum = True
 _dialect.supports_smallserial = True  # 9.2+
