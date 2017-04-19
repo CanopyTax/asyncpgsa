@@ -125,9 +125,11 @@ class SAConnection:
         query, params = compile_query(query)
         if id_col_name is not None:
             query += ' RETURNING ' + id_col_name
-
-        return await self.fetchval(query, *params, *args, **kwargs)
-
+        results = await self.fetch(query, *params, *args, **kwargs)
+        if len(results.data) == 1:
+            return results.data[0][0]
+        return results
+    
     @classmethod
     def from_connection(cls, connection_: connection):
         if connection_.__class__ == connection.Connection:
