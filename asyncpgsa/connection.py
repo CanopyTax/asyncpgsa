@@ -125,7 +125,7 @@ class SAConnection:
         query, params = compile_query(query)
         if id_col_name is not None:
             query += ' RETURNING ' + id_col_name
-        return await self.fetch(query, *params, *args, **kwargs)
+        return await self.fetchval(query, *params, *args, **kwargs)
 
     async def insert_and_return(self, query, *args, col_name: str = '*',
                                 **kwargs):
