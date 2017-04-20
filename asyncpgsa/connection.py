@@ -117,17 +117,26 @@ class SAConnection:
         query, params = compile_query(query)
         result = await self._connection.fetchrow(query, *params, *args, **kwargs)
         return Record(result)
-
-    async def insert(self, query, *args, id_col_name: str = 'id', **kwargs):
+    @staticmethod
+    async def _insert(query, col_name: str = 'id'):
         if not (isinstance(query, InsertObject) or
                 isinstance(query, str)):
             raise ValueError('Query must be an insert object or raw sql string')
         query, params = compile_query(query)
-        if id_col_name is not None:
-            query += ' RETURNING ' + id_col_name
+        if col_name is not None:
+            query += ' RETURNING ' + col_name
+        return query, params
+
+    async def insert(self, query, *args, id_col_name: str = 'id', **kwargs):
+        query, params = await SAConnection._insert(query, id_col_name)
 
         return await self.fetchval(query, *params, *args, **kwargs)
 
+    async def insert_and_return(self, query, *args, id_col_name: str = '*',
+                                **kwargs):
+        query, params = await SAConnection._insert(query, id_col_name)
+        return await self.fetch(query, *params, *args, **kwargs)
+    
     @classmethod
     def from_connection(cls, connection_: connection):
         if connection_.__class__ == connection.Connection:
