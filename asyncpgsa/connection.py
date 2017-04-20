@@ -126,7 +126,7 @@ class SAConnection:
         if id_col_name is not None:
             query += ' RETURNING ' + id_col_name
         results = await self.fetch(query, *params, *args, **kwargs)
-        if len(results.data) == 1:
+        if len(results.data) == 1 and id_col_name is 'id':
             return results.data[0][0]
         return results
     
