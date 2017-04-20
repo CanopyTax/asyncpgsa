@@ -1,10 +1,12 @@
 language: python
+addons:
+  postgresql: "9.4"
 services:
   - postgresql
 python:
   - "3.5"
-  - "3.5-dev" # 3.5 development branch
-  - "nightly" # currently points to 3.6-dev
+  - "3.6"
+  - "nightly" 
 # command to install dependencies
 install:
   - "pip install -r dev-requirements.txt --upgrade"
