@@ -1,14 +1,14 @@
 import re
 
 from asyncpg import connection
-from sqlalchemy.dialects import postgresql
+from sqlalchemy.dialects.postgresql import pypostgresql
 from sqlalchemy.sql import ClauseElement
 from sqlalchemy.sql.dml import Insert as InsertObject, Update as UpdateObject
 
 from .log import query_logger
 from .record import RecordGenerator, Record
 
-_dialect = postgresql.dialect()
+_dialect = pypostgresql.dialect()
 _dialect.implicit_returning = True
 _dialect.supports_native_enum = True
 _dialect.supports_smallserial = True  # 9.2+
@@ -73,7 +73,7 @@ def compile_query(query, dialect=_dialect, inline=False):
         query_logger.debug(query)
         return query, ()
     elif isinstance(query, ClauseElement):
-        query = execute_defaults(query) # default values for Insert/Update 
+        query = execute_defaults(query)  # default values for Insert/Update
         compiled = query.compile(dialect=dialect)
         params = _get_keys(compiled)
         new_query, new_params = _replace_keys(compiled.string, params)
@@ -86,35 +86,38 @@ def compile_query(query, dialect=_dialect, inline=False):
 
 
 class SAConnection:
-    __slots__ = ('_connection',)
+    __slots__ = ('_connection', '_dialect')
 
-    def __init__(self, connection_: connection):
+    def __init__(self, connection_: connection, *, dialect=None):
         self._connection = connection_
+        if not dialect:
+            dialect = _dialect
+        self._dialect = dialect
 
     def __getattr__(self, attr, *args, **kwargs):
         # getattr is only called when attr is NOT found
         return getattr(self._connection, attr)
 
     async def execute(self, script, *args, **kwargs) -> str:
-        script, params = compile_query(script)
+        script, params = compile_query(script, dialect=self._dialect)
         result = await self._connection.execute(script, *params, *args, **kwargs)
         return RecordGenerator(result)
 
     async def prepare(self, query, **kwargs):
-        query, params = compile_query(query)
+        query, params = compile_query(query, dialect=self._dialect)
         return await self._connection.prepare(query, **kwargs)
 
     async def fetch(self, query, *args, **kwargs) -> list:
-        query, params = compile_query(query)
+        query, params = compile_query(query, dialect=self._dialect)
         result = await self._connection.fetch(query, *params, *args, **kwargs)
         return RecordGenerator(result)
 
     async def fetchval(self, query, *args, **kwargs):
-        query, params = compile_query(query)
+        query, params = compile_query(query, dialect=self._dialect)
         return await self._connection.fetchval(query, *params, *args, **kwargs)
 
     async def fetchrow(self, query, *args, **kwargs):
-        query, params = compile_query(query)
+        query, params = compile_query(query, dialect=self._dialect)
         result = await self._connection.fetchrow(query, *params, *args, **kwargs)
         return Record(result)
 
@@ -122,16 +125,16 @@ class SAConnection:
         if not (isinstance(query, InsertObject) or
                 isinstance(query, str)):
             raise ValueError('Query must be an insert object or raw sql string')
-        query, params = compile_query(query)
+        query, params = compile_query(query, dialect=self._dialect)
         if id_col_name is not None:
             query += ' RETURNING ' + id_col_name
 
         return await self.fetchval(query, *params, *args, **kwargs)
 
     @classmethod
-    def from_connection(cls, connection_: connection):
+    def from_connection(cls, connection_: connection, dialect=None):
         if connection_.__class__ == connection.Connection:
-            return SAConnection(connection_)
+            return SAConnection(connection_, dialect=dialect)
         else:
             raise ValueError('Connection object must be of type '
                              'asyncpg.connection.Connection')
