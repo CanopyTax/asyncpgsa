@@ -24,13 +24,14 @@ class PG:
         else:
             return self.__pool
 
-    async def init(self, *args, **kwargs):
+    async def init(self, *args, dialect=None, **kwargs):
         """
         :param args: args for pool
+        :param dialect: sqlalchemy postgres dialect
         :param kwargs: kwargs for pool
         :return: None
         """
-        self.__pool = await create_pool(*args, **kwargs)
+        self.__pool = await create_pool(*args, dialect=dialect, **kwargs)
 
     def query(self, query, *args, prefetch=None, timeout=None):
         """

@@ -5,10 +5,14 @@ from .connection import SAConnection
 
 
 class SAPool(Pool):
+    def __init__(self, *args, dialect=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.dialect = dialect
+
     async def _new_connection(self, timeout=None):
         con = await super()._new_connection()
         self._connections.remove(con)
-        con = SAConnection.from_connection(con)
+        con = SAConnection.from_connection(con, dialect=self.dialect)
         self._connections.add(con)
         return con
 
@@ -27,6 +31,7 @@ def create_pool(dsn=None, *,
                 setup=None,
                 init=None,
                 loop=None,
+                dialect=None,
                 **connect_kwargs):
     r"""Create a connection pool.
 
@@ -50,6 +55,7 @@ def create_pool(dsn=None, *,
         finally:
             await pool.release(con)
 
+    :param dialect: sqlalchemy postgres dialect
     :param str dsn: Connection arguments specified using as a single string in
                     the following format:
                     ``postgres://user:pass@host:port/database?option=value``.
@@ -77,5 +83,6 @@ def create_pool(dsn=None, *,
     return SAPool(dsn,
                   min_size=min_size, max_size=max_size,
                   max_queries=max_queries, loop=loop, setup=setup, init=init,
+                  dialect=dialect,
                   **connect_kwargs)
 
