@@ -68,6 +68,9 @@ def create_pool(dsn=None, *,
     :param int max_size: Max number of connections in the pool.
     :param int max_queries: Number of queries after a connection is closed
                             and replaced with a new connection.
+    :param float max_inactive_connection_lifetime: 
+        Number of seconds after which inactive connections in the
+        pool will be closed.  Pass ``0`` to disable this mechanism.
     :param coroutine setup: A coroutine to initialize a connection right before
                             it is returned from :meth:`~pool.Pool.acquire`.
                             An example use case would be to automatically
@@ -83,7 +86,9 @@ def create_pool(dsn=None, *,
     """
     return SAPool(dsn,
                   min_size=min_size, max_size=max_size,
-                  max_queries=max_queries, loop=loop, setup=setup, init=init,
+                  max_queries=max_queries,
+                  max_inactive_connection_lifetime=max_inactive_connection_lifetime,
+                  loop=loop, setup=setup, init=init,
                   dialect=dialect,
                   **connect_kwargs)
 
