@@ -7,6 +7,7 @@ setup(
     install_requires=[
         'asyncpg~=0.9.0',
         'sqlalchemy',
+        'sqlparse',
     ],
     packages=['asyncpgsa', 'asyncpgsa.testing'],
     url='https://github.com/canopytax/asyncpgsa',

@@ -9,36 +9,36 @@ file_table = sa.Table(
     sa.Column('id_1'),
 )
 
-async def test__replace_keys():
+async def test_placeholder_swap():
     ids = list(range(1, 10))
     query = file_table.update() \
         .values(id=None) \
         .where(file_table.c.id.in_(ids))
     compiled = query.compile(dialect=connection._dialect)
-    params = connection._get_keys(compiled)
-    new_query = connection._replace_keys(compiled.string, params)
-    assert new_query[0] == 'UPDATE meows SET id=$1 WHERE meows.id IN ' \
+    query_string, params = connection.placeholder_swap(
+        compiled.string, compiled.params)
+    assert query_string == 'UPDATE meows SET id=$1 WHERE meows.id IN ' \
                            '($2, $3, $4, $5, $6, $7, $8, $9, $10)'
-    assert new_query[1] == [None, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    assert params == [None, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-async def test__get_keys():
-    ids = list(range(1, 10))
-    query = file_table.update() \
-        .values(id=None) \
-        .where(file_table.c.id.in_(ids))
-    compiled = query.compile(dialect=connection._dialect)
-    connection._get_keys(compiled)
+
+async def test_placeholder_swap_mixed():
+    """Ensure postgres double-colon casting doesn't
+    conflict with placeholders
+    """
+    query = 'SELECT id, :color, id::text as text_id FROM meows WHERE id = $1'
+    keyword_params = {'color': 'red'}
+    query_string, params = connection.placeholder_swap(
+        query, keyword_params)
+    assert query_string == 'SELECT id, $2, id::text as text_id FROM ' \
+                           'meows WHERE id = $1'
+    assert params == ['red']
 
 
 async def test_compile_query(monkeypatch):
     def mock(*args):
-        return 'bob'
-    monkeypatch.setattr('asyncpgsa.connection._get_keys', mock)
-
-    def mock(*args):
         return 'bob', 'sally'
-    monkeypatch.setattr('asyncpgsa.connection._replace_keys',
-                        mock)
+    monkeypatch.setattr('asyncpgsa.connection.placeholder_swap', mock)
     ids = list(range(1, 40))
     query = file_table.update() \
         .values(id=None) \

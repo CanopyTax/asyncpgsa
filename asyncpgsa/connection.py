@@ -1,5 +1,6 @@
 import re
 
+import sqlparse
 from asyncpg import connection
 from sqlalchemy.dialects.postgresql import pypostgresql
 from sqlalchemy.sql import ClauseElement
@@ -16,36 +17,10 @@ _dialect._backslash_escapes = False
 _dialect.supports_sane_multi_rowcount = True  # psycopg 2.0.9+
 _dialect._has_native_hstore = True
 _dialect.paramstyle = 'named'
-_pattern = r':(\w+)(?:\W|)'
-_compiled_pattern = re.compile(_pattern, re.M)
 
 
 class MissingParameterError(KeyError):
     """ This error gets thrown when a parameter is missing in a query """
-
-
-def _replace_keys(querystring, params, inline=False):
-    new_params = []
-    for index, param in enumerate(params):
-        name, value = param
-        if inline:
-            querystring = querystring.replace(':' + name, value, 1)
-        else:
-            querystring = querystring.replace(':' + name,
-                                              '$' + str(index + 1), 1)
-            new_params.append(value)
-
-    return querystring, new_params
-
-
-def _get_keys(compiled):
-    p = _compiled_pattern
-    keys = re.findall(p, compiled.string)
-    try:
-        params = [(i, compiled.params[i]) for i in keys]
-    except KeyError as e:
-        raise MissingParameterError('Parameter {} missing'.format(e))
-    return params
 
 
 def execute_defaults(query):
@@ -68,6 +43,41 @@ def execute_defaults(query):
     return query
 
 
+def placeholder_swap(input_sql, keyword_values=None):
+    """
+    Takes a given query in `input_sql` and converts all `:keyword` parameters
+    into `$1` parameters, and returns a matching list of values ordered
+    according to the matching numeric index from the newly generated query.
+    :param input_sql: sql to be converted from keyword to numeric placeholders
+    :param keyword_values: dict of keyword: value pairs
+    :return: tuple of a modified query and list of values from keyword_values
+        in which all the values are ordered properly for the paired query
+    """
+    if not keyword_values:
+        keyword_values = {}
+    placeholder_type = sqlparse.tokens.Name.Placeholder
+    tokens = sqlparse.parse(input_sql)[0]
+    placeholders = [token for token in tokens.flatten()
+                    if token.ttype == placeholder_type]
+    colon_placeholders = [i for i in placeholders
+                          if i.value.startswith(':')]
+    placeholder_index = len(placeholders) - len(colon_placeholders) + 1
+    keywords = {}
+    params = []
+    for i, placeholder in enumerate(colon_placeholders):
+        kw_name = placeholder.value[1:]
+        keywords[kw_name] = placeholder_index
+        placeholder.value = '$'+str(placeholder_index)
+        try:
+            params.append(keyword_values[kw_name])
+        except KeyError as e:
+            raise MissingParameterError('Parameter {} missing'.format(e))
+        placeholder_index += 1
+
+    output_sql = str(tokens)
+    return output_sql, params
+
+
 def compile_query(query, dialect=_dialect, inline=False):
     if isinstance(query, str):
         query_logger.debug(query)
@@ -75,8 +85,10 @@ def compile_query(query, dialect=_dialect, inline=False):
     elif isinstance(query, ClauseElement):
         query = execute_defaults(query)  # default values for Insert/Update
         compiled = query.compile(dialect=dialect)
-        params = _get_keys(compiled)
-        new_query, new_params = _replace_keys(compiled.string, params)
+        new_query, new_params = placeholder_swap(
+            compiled.string,
+            compiled.params
+        )
 
         query_logger.debug(new_query)
 
