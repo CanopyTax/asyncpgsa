@@ -43,7 +43,7 @@ def execute_defaults(query):
     return query
 
 
-def placeholder_swap(input_sql, keyword_values=None):
+def _placeholder_swap(input_sql, keyword_values=None):
     """
     Takes a given query in `input_sql` and converts all `:keyword` parameters
     into `$1` parameters, and returns a matching list of values ordered
@@ -61,7 +61,10 @@ def placeholder_swap(input_sql, keyword_values=None):
                     if token.ttype == placeholder_type]
     colon_placeholders = [i for i in placeholders
                           if i.value.startswith(':')]
-    placeholder_index = len(placeholders) - len(colon_placeholders) + 1
+    numeric_placeholder_count = len(placeholders) - len(colon_placeholders)
+    if numeric_placeholder_count != 0:
+        raise ValueError('Query has numeric placeholders')
+    placeholder_index = 1
     keywords = {}
     params = []
     for i, placeholder in enumerate(colon_placeholders):
@@ -85,7 +88,7 @@ def compile_query(query, dialect=_dialect, inline=False):
     elif isinstance(query, ClauseElement):
         query = execute_defaults(query)  # default values for Insert/Update
         compiled = query.compile(dialect=dialect)
-        new_query, new_params = placeholder_swap(
+        new_query, new_params = _placeholder_swap(
             compiled.string,
             compiled.params
         )
