@@ -16,7 +16,7 @@ _dialect._backslash_escapes = False
 _dialect.supports_sane_multi_rowcount = True  # psycopg 2.0.9+
 _dialect._has_native_hstore = True
 _dialect.paramstyle = 'named'
-_pattern = r':(\w+)(?:\W|)'
+_pattern = r'(?<!:):(\w+)'
 _compiled_pattern = re.compile(_pattern, re.M)
 
 
