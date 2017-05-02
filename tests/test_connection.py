@@ -21,6 +21,17 @@ async def test__replace_keys():
                            '($2, $3, $4, $5, $6, $7, $8, $9, $10)'
     assert new_query[1] == [None, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
+async def test__replace_keys_colon():
+    sql = sa.text('SELECT :id, my_date::DATE FROM users')
+    params = {
+        'id': 123,
+    }
+    sql = sql.params(**params)
+
+    q, p = connection.compile_query(sql)
+    assert q == 'SELECT $1, my_date::DATE FROM users'
+    assert p == [123]
+
 async def test__get_keys():
     ids = list(range(1, 10))
     query = file_table.update() \
