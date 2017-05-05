@@ -11,7 +11,8 @@ class MockSAPool(SAPool):
                          max_size=1,
                          max_queries=1,
                          setup=None,
-                         loop=None)
+                         loop=None,
+                         init=None)
         self.connection = connection
         if not self.connection:
             self.connection = MockConnection()
