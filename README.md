@@ -38,6 +38,7 @@ Go [here](https://github.com/CanopyTax/asyncpgsa/wiki/Examples) for examples.
 pip install asyncpgsa
 ```
 
+*Note*: You should *not* have `asyncpg` in your requirements at all. This lib will pull down the correct version of asyncpg for you. If you have asyncpg in your requirements, you could get a version newer than this one supports.
 
 ## Contributing
 To contribute or build this locally see [contributing.md](https://github.com/CanopyTax/asyncpgsa/blob/master/contributing.md)
