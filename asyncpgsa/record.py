@@ -1,10 +1,7 @@
-
+from sqlalchemy import Column
 
 class Record:
     __slots__ = ('row',)
-
-    def __str__(self):
-        return str(self.row)
 
     def __init__(self, row):
         self.row = row
@@ -13,8 +10,17 @@ class Record:
         try:
             return self.row[item]
         except KeyError:
-            raise AttributeError("'Row' object has no attribute '{}'"
-                                 .format(item))
+            try:
+                return getattr(self.row, item)
+            except AttributeError:
+                raise AttributeError("'Row' object has no attribute '{}'"
+                                     .format(item))
+
+    def __getitem__(self, key):
+        if isinstance(key, Column):
+            key = key.name
+
+        return self.row[key]
 
     def __bool__(self):
         return self.row is not None
