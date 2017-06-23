@@ -111,6 +111,12 @@ async def test_fetchrow_sometype():
     assert bool(result), 'Fetchrow should be truthy with data.'
 
 
+async def test_execute():
+    script = "SELECT 1; SELECT 2;"
+    result = await pg.execute(script)
+    assert bool(result)
+
+
 async def test_fetchval():
     value = await pg.fetchval(query, column=2)
     assert value == 5.0

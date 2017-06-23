@@ -78,6 +78,10 @@ class PG:
             return await conn.fetchval(
                 query, *args, column=column, timeout=timeout)
 
+    async def execute(self, *args, **kwargs):
+        async with self.pool.acquire() as conn:
+            return await conn.execute(*args, **kwargs)
+
     async def insert(self, *args, id_col_name: str = 'id',
                      timeout=None):
         async with self.pool.acquire() as conn:
