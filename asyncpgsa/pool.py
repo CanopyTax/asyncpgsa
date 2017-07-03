@@ -1,4 +1,7 @@
-from asyncpg.pool import Pool
+from collections import ChainMap
+import inspect
+
+from asyncpg.pool import Pool, create_pool as _create_pool
 
 from .transactionmanager import ConnectionTransactionContextManager
 from .connection import SAConnection
@@ -24,15 +27,7 @@ class SAPool(Pool):
         return self.transaction(**kwargs)
 
 
-def create_pool(dsn=None, *,
-                min_size=10,
-                max_size=10,
-                max_queries=50000,
-                setup=None,
-                init=None,
-                loop=None,
-                dialect=None,
-                **connect_kwargs):
+def create_pool(*args, **kwargs):
     r"""Create a connection pool.
 
     Can be used either with an ``async with`` block:
@@ -40,7 +35,7 @@ def create_pool(dsn=None, *,
     .. code-block:: python
 
         async with asyncpgsa.create_pool(user='postgres',
-                                       command_timeout=60) as pool:
+                                         command_timeout=60) as pool:
             async with poll.acquire() as con:
                 await con.fetch('SELECT 1')
 
@@ -55,34 +50,17 @@ def create_pool(dsn=None, *,
         finally:
             await pool.release(con)
 
-    :param dialect: sqlalchemy postgres dialect
-    :param str dsn: Connection arguments specified using as a single string in
-                    the following format:
-                    ``postgres://user:pass@host:port/database?option=value``.
+    All parameters are equivalent to :function:`~asyncpg.pool.create_pool()`.
 
-    :param \*\*connect_kwargs: Keyword arguments for the
-                               :func:`~asyncpg.connection.connect` function.
-    :param int min_size: Number of connection the pool will be initialized
-                         with.
-    :param int max_size: Max number of connections in the pool.
-    :param int max_queries: Number of queries after a connection is closed
-                            and replaced with a new connection.
-    :param coroutine setup: A coroutine to initialize a connection right before
-                            it is returned from :meth:`~pool.Pool.acquire`.
-                            An example use case would be to automatically
-                            set up notifications listeners for all connections
-                            of a pool.
-    :param coroutine init: A coroutine to initialize a connection
-                            when it is created. An example use case would
-                            be to setup type codecs with
-                            set_builtin_type_codec() or set_type_codec()
-    :param loop: An asyncio event loop instance.  If ``None``, the default
-                 event loop will be used.
-    :return: An instance of :class:`~asyncpg.pool.Pool`.
+    :return: An instance of :class:`~asyncpgsa.pool.SAPool`.
     """
-    return SAPool(dsn,
-                  min_size=min_size, max_size=max_size,
-                  max_queries=max_queries, loop=loop, setup=setup, init=init,
-                  dialect=dialect,
-                  **connect_kwargs)
+
+    sig = inspect.signature(_create_pool)
+    default_kwargs = {p.name: p.default for p in sig.parameters.values()
+                      if (p.kind in (p.POSITIONAL_OR_KEYWORD, p.KEYWORD_ONLY)
+                          and p.default is not p.empty)}
+    # User may pass additional kwargs.
+    # (e.g., connect_kwargs passed to underlying Connection objects)
+    passed_kwargs = ChainMap(kwargs, default_kwargs)
+    return SAPool(*args, **passed_kwargs)
 
