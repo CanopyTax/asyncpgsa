@@ -100,7 +100,8 @@ class SAConnection(connection.Connection):
     #     return getattr(self._connection, attr)
 
     def _execute(self, query, args, limit, timeout, return_status=False):
-        query, args = compile_query(query, dialect=self._dialect)
+        query, compiled_args = compile_query(query, dialect=self._dialect)
+        args = tuple(compiled_args) + args
         return super()._execute(query, args, limit, timeout,
                                 return_status=return_status)
 
