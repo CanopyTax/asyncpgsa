@@ -128,6 +128,12 @@ async def test_fetchval():
     assert value == 6.0
 
 
+async def test_sql_with_arguments():
+    script = "SELECT $1::INT"
+    result = await pg.execute(script, 1)
+    assert bool(result)
+
+
 async def test_transaction():
     async with pg.transaction() as conn:
         for row in await conn.fetch(query):
