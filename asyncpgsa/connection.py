@@ -101,12 +101,13 @@ class SAConnection(connection.Connection):
 
     def _execute(self, query, args, limit, timeout, return_status=False):
         query, compiled_args = compile_query(query, dialect=self._dialect)
-        args = tuple(compiled_args) + args
+        args = compiled_args or args
         return super()._execute(query, args, limit, timeout,
                                 return_status=return_status)
 
     async def execute(self, script, *args, **kwargs) -> str:
-        # script, params = compile_query(script, dialect=self._dialect)
+        script, params = compile_query(script, dialect=self._dialect)
+        args = params or args
         result = await super().execute(script, *args, **kwargs)
         return RecordGenerator(result)
 

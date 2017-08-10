@@ -134,6 +134,12 @@ async def test_sql_with_arguments():
     assert bool(result)
 
 
+async def test_execute_with_sa_arguments():
+    script = sa.select('*').select_from(sa.text('sqrt(:num) as a'))
+    script = script.params(num=16)
+    result = await pg.execute(script)
+    assert bool(result)
+
 async def test_transaction():
     async with pg.transaction() as conn:
         for row in await conn.fetch(query):
