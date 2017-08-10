@@ -43,7 +43,9 @@ pip install asyncpgsa
 To contribute or build this locally see [contributing.md](https://github.com/CanopyTax/asyncpgsa/blob/master/contributing.md)
 
 
-## Does SQLAlchemy integration defeat the point of using asyncpg as a backend (performance)
+## FAQ
+
+#### Does SQLAlchemy integration defeat the point of using asyncpg as a backend (performance)?
 I dont think so. `asyncpgsa` is written in a way where any query can be a string instead of an SA object, then you will get near asyncpg speeds, as no SA code is ran. 
 However, when comparing this to `aiopg`, it still seams to work faster. Here is a very basic `timeit` test comparing the two.
 https://gist.github.com/nhumrich/3470f075ae1d868f663b162d01a07838
