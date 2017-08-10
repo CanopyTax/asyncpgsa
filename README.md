@@ -54,4 +54,4 @@ https://gist.github.com/nhumrich/3470f075ae1d868f663b162d01a07838
 aiopg.sa: 9.541276566000306
 asyncpsa: 6.747777451004367
 ```
-So, seams like its still faster using asyncpg, or in otherwords, this library doesnt add any overhead that is not in aiopg.sa.
+So, seems like its still faster using asyncpg, or in otherwords, this library doesnt add any overhead that is not in aiopg.sa.
