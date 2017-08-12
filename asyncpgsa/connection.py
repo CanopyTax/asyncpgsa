@@ -41,8 +41,14 @@ def _replace_keys(querystring, params, inline=False):
 def _get_keys(compiled):
     p = _compiled_pattern
     keys = re.findall(p, compiled.string)
+    processors = compiled._bind_processors
+    params = []
     try:
-        params = [(i, compiled.params[i]) for i in keys]
+        for key in keys:
+            processed_param = (processors[key](compiled.params[key])
+                               if key in processors
+                               else compiled.params[key])
+            params.append((key, processed_param))
     except KeyError as e:
         raise MissingParameterError('Parameter {} missing'.format(e))
     return params
