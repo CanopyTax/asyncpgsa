@@ -92,18 +92,7 @@ def compile_query(query, dialect=_dialect, inline=False):
 
 
 class SAConnection(connection.Connection):
-    # __slots__ = ('_dialect')
     _dialect = None
-
-    # def __init__(self, connection_: connection, *, dialect=None):
-    #     self._connection = connection_
-    #     if not dialect:
-    #         dialect = _dialect
-    #     self._dialect = dialect
-
-    # def __getattr__(self, attr, *args, **kwargs):
-    #     # getattr is only called when attr is NOT found
-    #     return getattr(self._connection, attr)
 
     def __init__(self, *args, dialect=None, **kwargs):
         super(SAConnection, self).__init__(*args, **kwargs)
@@ -123,20 +112,16 @@ class SAConnection(connection.Connection):
         return RecordGenerator(result)
 
     async def prepare(self, query, **kwargs):
-        # query, params = compile_query(query, dialect=self._dialect)
         return await super().prepare(query, **kwargs)
 
-    async def fetch(self, query, *args, **kwargs) -> list:
-        # query, params = compile_query(query, dialect=self._dialect)
+    async def fetch(self, query, *args, **kwargs) -> RecordGenerator:
         result = await super().fetch(query, *args, **kwargs)
         return RecordGenerator(result)
 
     async def fetchval(self, query, *args, **kwargs):
-        # query, params = compile_query(query, dialect=self._dialect)
         return await super().fetchval(query, *args, **kwargs)
 
     async def fetchrow(self, query, *args, **kwargs):
-        # query, params = compile_query(query, dialect=self._dialect)
         result = await super().fetchrow(query, *args, **kwargs)
         return Record(result)
 
