@@ -105,6 +105,11 @@ class SAConnection(connection.Connection):
     #     # getattr is only called when attr is NOT found
     #     return getattr(self._connection, attr)
 
+    def __init__(self, *args, dialect=None, **kwargs):
+        super(SAConnection, self).__init__(*args, **kwargs)
+
+        self._dialect = dialect if dialect is not None else _dialect
+
     def _execute(self, query, args, limit, timeout, return_status=False):
         query, compiled_args = compile_query(query, dialect=self._dialect)
         args = compiled_args or args
