@@ -1,23 +1,27 @@
 from asyncpgsa import compile_query
-from asyncpgsa.pool import SAPool
+from asyncpg.pool import Pool
 
 from .mockconnection import MockConnection
 from .mocktransactionmanager import MockTransactionManager
 
 
-class MockSAPool(SAPool):
+class MockSAPool(Pool):
     def __init__(self, connection=None):
         super().__init__(min_size=1,
                          max_size=1,
                          max_queries=1,
+                         max_inactive_connection_lifetime=300.0,
                          setup=None,
                          loop=None,
-                         init=None)
+                         init=None,
+                         connection_class=MockConnection)
+
         self.connection = connection
         if not self.connection:
             self.connection = MockConnection()
 
     def __getattr__(self, item):
+
         raise Exception('Sorry, {} doesnt exist yet. '
                         'Consider making a PR.'.format(item))
 
@@ -36,3 +40,22 @@ class MockSAPool(SAPool):
 
     def transaction(self, **kwargs):
         return MockTransactionManager(self, self.connection)
+
+    def terminate(self):
+        pass
+
+    def __await__(self):
+        async def _():
+            return self
+        return _()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    async def close(self):
+        pass
+
+

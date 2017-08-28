@@ -246,7 +246,7 @@ Example test
 ++++++++++++
 Here is an example test.::
 
-    from asyncpgsa.testing import MockPG using pytest
+    from asyncpgsa.testing import MockPG
 
     async def test_run_query(monkeypatch)
        pg = MockPG()
@@ -259,7 +259,7 @@ Here is an example test.::
 
 And another where there are multiple queries::
 
-    from asyncpgsa.testing import MockPG using pytest
+    from asyncpgsa.testing import MockPG
 
     async def test_run_query(monkeypatch)
        pg = MockPG()

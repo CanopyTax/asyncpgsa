@@ -3,14 +3,15 @@ from functools import wraps
 import asyncpg
 
 from .transactionmanager import ConnectionTransactionContextManager
-from .connection import SAConnection
+from .connection import get_saconnection_class
 
 
 @wraps(asyncpg.create_pool)
 def create_pool(*args,
                 dialect=None,
                 **connect_kwargs):
-    SAConnection._dialect = dialect
+    connection_class = get_saconnection_class()
+    connection_class._dialect = dialect
 
     # dict is fine on the pool object as there is usually only one of them
     # asyncpg.pool.Pool.__slots__ += ('__dict__',)
@@ -20,7 +21,7 @@ def create_pool(*args,
         return ConnectionTransactionContextManager(self, **kwargs)
     asyncpg.pool.Pool.transaction = transaction
     asyncpg.pool.Pool.begin = transaction
-    pool = asyncpg.create_pool(*args, connection_class=SAConnection,
+    pool = asyncpg.create_pool(*args, connection_class=connection_class,
                                **connect_kwargs)
     return pool
 

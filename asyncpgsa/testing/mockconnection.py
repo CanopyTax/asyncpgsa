@@ -12,15 +12,21 @@ class MockConnection:
         self.completed_queries.append((query, *args, kwargs))
         return self.results.get_nowait()
 
-    def __getattr__(self, item):
-        if item in ('execute', 'fetch', 'fetchval', 'fetchrow'):
-            return self.general_query
-
-        raise Exception('Sorry, {} doesnt exist yet. '
-                        'Consider making a PR.'.format(item))
+    execute = fetch = fetchval = fetchrow = general_query
 
     async def prepare(self, query, *, timeout=None):
         return MockPreparedStatement(self, query, None)
 
     async def close(self):
         pass
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    def __await__(self):
+        async def get_conn():
+            return self
+        return get_conn()
