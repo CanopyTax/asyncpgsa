@@ -2,7 +2,7 @@ from asyncio import Queue
 
 from asyncpgsa.connection import compile_query
 from asyncpgsa.pgsingleton import CursorInterface
-from asyncpgsa.connection import SAConnection
+from asyncpgsa.connection import get_saconnection_class
 
 from .mockpool import MockSAPool
 from .mockconnection import MockConnection
@@ -10,16 +10,17 @@ from .mockconnection import MockConnection
 
 class MockPG:
     def __init__(self):
-        self.connection = SAConnection(MockConnection())
+        connection_class = get_saconnection_class(superclass=MockConnection)
+        self.connection = connection_class()
         self.__pool = MockSAPool(connection=self.connection)
 
     def get_completed_queries(self):
-        return self.connection._connection.completed_queries
+        return self.connection.completed_queries
 
     def set_database_results(self, *results):
-        self.connection._connection.results = Queue()  # reset queue
+        self.connection.results = Queue()  # reset queue
         for result in results:
-            self.connection._connection.results.put_nowait(result)
+            self.connection.results.put_nowait(result)
 
     def query(self, query, *args, **kwargs):
         compiled_q, compiled_args = compile_query(query)
