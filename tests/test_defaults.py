@@ -14,8 +14,8 @@ class MyEnum(enum.Enum):
 
 
 class MyIntEnum(enum.IntEnum):
-    ITEM_1 = enum.auto()
-    ITEM_2 = enum.auto()
+    ITEM_1 = 1
+    ITEM_2 = 2
 
 
 name_default = 'default'
