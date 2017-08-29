@@ -90,17 +90,17 @@ def compile_query(query, dialect=_dialect, inline=False):
             return new_query
         return new_query, new_params
 
-            
+
 def get_saconnection_class(superclass=connection.Connection):
     # making the super class dynamic makes it easier to mock for testing
 
     class SAConnection(superclass):
         _dialect = None
-        
-        def __init__(self, *args, dialect=None, **kwargs):
-            super(SAConnection, self).__init__(*args, **kwargs)
 
-            self._dialect = dialect if dialect is not None else _dialect
+        def __init__(self, *args, dialect=None, **kwargs):
+            super().__init__(*args, **kwargs)
+
+            self._dialect = dialect or _dialect
 
         def _execute(self, query, args, limit, timeout, return_status=False):
             query, compiled_args = compile_query(query, dialect=self._dialect)
