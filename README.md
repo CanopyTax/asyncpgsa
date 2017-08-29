@@ -16,6 +16,9 @@ for an example of creating a dialect. Please let me know if the change from
 psycopg2 to pypostgres broke you. If this happens enough, 
 I might make psycopg2 the default.
 
+2. 0.16.0 removed SAConnection as a class in asyncpgsa.connection. 
+This means that any references to it directly will fail. See release notes for more details.
+
 ## sqlalchemy ORM
 
 Currently this repo does not support SA ORM, only SA Core.
