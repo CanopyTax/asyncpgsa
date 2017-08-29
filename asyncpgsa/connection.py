@@ -91,50 +91,49 @@ def compile_query(query, dialect=_dialect, inline=False):
         return new_query, new_params
 
 
-def get_saconnection_class(superclass=connection.Connection):
+# def get_saconnection_class(superclass=connection.Connection):
     # making the super class dynamic makes it easier to mock for testing
 
-    class SAConnection(superclass):
-        # __slots__ = ('_dialect')
-        _dialect = None
+class SAConnection(connection.Connection):
+    # __slots__ = ('_dialect')
+    _dialect = None
 
-        def _execute(self, query, args, limit, timeout, return_status=False):
-            query, compiled_args = compile_query(query, dialect=self._dialect)
-            args = compiled_args or args
-            return super()._execute(query, args, limit, timeout,
-                                    return_status=return_status)
+    def _execute(self, query, args, limit, timeout, return_status=False):
+        query, compiled_args = compile_query(query, dialect=self._dialect)
+        args = compiled_args or args
+        return super()._execute(query, args, limit, timeout,
+                                return_status=return_status)
 
-        async def execute(self, script, *args, **kwargs) -> str:
-            script, params = compile_query(script, dialect=self._dialect)
-            args = params or args
-            result = await super().execute(script, *args, **kwargs)
-            return RecordGenerator(result)
+    async def execute(self, script, *args, **kwargs) -> str:
+        script, params = compile_query(script, dialect=self._dialect)
+        args = params or args
+        result = await super().execute(script, *args, **kwargs)
+        return RecordGenerator(result)
 
-        async def prepare(self, query, **kwargs):
-            # query, params = compile_query(query, dialect=self._dialect)
-            return await super().prepare(query, **kwargs)
+    async def prepare(self, query, **kwargs):
+        # query, params = compile_query(query, dialect=self._dialect)
+        return await super().prepare(query, **kwargs)
 
-        async def fetch(self, query, *args, **kwargs) -> list:
-            # query, params = compile_query(query, dialect=self._dialect)
-            result = await super().fetch(query, *args, **kwargs)
-            return RecordGenerator(result)
+    async def fetch(self, query, *args, **kwargs) -> list:
+        # query, params = compile_query(query, dialect=self._dialect)
+        result = await super().fetch(query, *args, **kwargs)
+        return RecordGenerator(result)
 
-        async def fetchval(self, query, *args, **kwargs):
-            # query, params = compile_query(query, dialect=self._dialect)
-            return await super().fetchval(query, *args, **kwargs)
+    async def fetchval(self, query, *args, **kwargs):
+        # query, params = compile_query(query, dialect=self._dialect)
+        return await super().fetchval(query, *args, **kwargs)
 
-        async def fetchrow(self, query, *args, **kwargs):
-            # query, params = compile_query(query, dialect=self._dialect)
-            result = await super().fetchrow(query, *args, **kwargs)
-            return Record(result)
+    async def fetchrow(self, query, *args, **kwargs):
+        # query, params = compile_query(query, dialect=self._dialect)
+        result = await super().fetchrow(query, *args, **kwargs)
+        return Record(result)
 
-        async def insert(self, query, *args, id_col_name: str = 'id', **kwargs):
-            if not (isinstance(query, InsertObject) or
-                    isinstance(query, str)):
-                raise ValueError('Query must be an insert object or raw sql string')
-            query, params = compile_query(query, dialect=self._dialect)
-            if id_col_name is not None:
-                query += ' RETURNING ' + id_col_name
+    async def insert(self, query, *args, id_col_name: str = 'id', **kwargs):
+        if not (isinstance(query, InsertObject) or
+                isinstance(query, str)):
+            raise ValueError('Query must be an insert object or raw sql string')
+        query, params = compile_query(query, dialect=self._dialect)
+        if id_col_name is not None:
+            query += ' RETURNING ' + id_col_name
 
-            return await self.fetchval(query, *params, *args, **kwargs)
-    return SAConnection
+        return await self.fetchval(query, *params, *args, **kwargs)
