@@ -115,20 +115,16 @@ def get_saconnection_class(superclass=connection.Connection):
             return RecordGenerator(result)
 
         async def prepare(self, query, **kwargs):
-            # query, params = compile_query(query, dialect=self._dialect)
             return await super().prepare(query, **kwargs)
 
-        async def fetch(self, query, *args, **kwargs) -> list:
-            # query, params = compile_query(query, dialect=self._dialect)
+        async def fetch(self, query, *args, **kwargs) -> RecordGenerator:
             result = await super().fetch(query, *args, **kwargs)
             return RecordGenerator(result)
 
         async def fetchval(self, query, *args, **kwargs):
-            # query, params = compile_query(query, dialect=self._dialect)
             return await super().fetchval(query, *args, **kwargs)
 
         async def fetchrow(self, query, *args, **kwargs):
-            # query, params = compile_query(query, dialect=self._dialect)
             result = await super().fetchrow(query, *args, **kwargs)
             return Record(result)
 
