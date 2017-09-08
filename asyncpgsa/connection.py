@@ -6,7 +6,6 @@ from sqlalchemy.sql import ClauseElement
 from sqlalchemy.sql.dml import Insert as InsertObject, Update as UpdateObject
 
 from .log import query_logger
-from .record import RecordGenerator, Record
 
 _dialect = pypostgresql.dialect()
 _dialect.implicit_returning = True
@@ -104,11 +103,16 @@ def get_saconnection_class(superclass=connection.Connection):
             return super()._execute(query, args, limit, timeout,
                                     return_status=return_status)
 
+        def cursor(self, query, *args, **kwargs):
+            query, params = compile_query(query, dialect=self._dialect)
+            result = super().cursor(query, *params, *args, **kwargs)
+            return result
+
         async def execute(self, script, *args, **kwargs) -> str:
             script, params = compile_query(script, dialect=self._dialect)
             args = params or args
             result = await super().execute(script, *args, **kwargs)
-            return RecordGenerator(result)
+            return result
 
         async def prepare(self, query, **kwargs):
             # query, params = compile_query(query, dialect=self._dialect)
@@ -117,7 +121,7 @@ def get_saconnection_class(superclass=connection.Connection):
         async def fetch(self, query, *args, **kwargs) -> list:
             # query, params = compile_query(query, dialect=self._dialect)
             result = await super().fetch(query, *args, **kwargs)
-            return RecordGenerator(result)
+            return result
 
         async def fetchval(self, query, *args, **kwargs):
             # query, params = compile_query(query, dialect=self._dialect)
@@ -126,7 +130,7 @@ def get_saconnection_class(superclass=connection.Connection):
         async def fetchrow(self, query, *args, **kwargs):
             # query, params = compile_query(query, dialect=self._dialect)
             result = await super().fetchrow(query, *args, **kwargs)
-            return Record(result)
+            return result
 
         async def insert(self, query, *args, id_col_name: str = 'id', **kwargs):
             if not (isinstance(query, InsertObject) or
