@@ -94,8 +94,9 @@ def get_saconnection_class(superclass=connection.Connection):
     # making the super class dynamic makes it easier to mock for testing
 
     class SAConnection(superclass):
-        # __slots__ = ('_dialect')
-        _dialect = None
+        def __init__(self, *args, **kwargs):
+            self._dialect = _dialect
+            super().__init__(*args, **kwargs)
 
         def _execute(self, query, args, limit, timeout, return_status=False):
             query, compiled_args = compile_query(query, dialect=self._dialect)
@@ -115,20 +116,23 @@ def get_saconnection_class(superclass=connection.Connection):
             return result
 
         async def prepare(self, query, **kwargs):
-            # query, params = compile_query(query, dialect=self._dialect)
-            return await super().prepare(query, **kwargs)
+            query, params = compile_query(query, dialect=self._dialect)
+            return await super().prepare(query, *params, **kwargs)
 
         async def fetch(self, query, *args, **kwargs) -> list:
-            # query, params = compile_query(query, dialect=self._dialect)
+            query, params = compile_query(query, dialect=self._dialect)
+            args = params or args
             result = await super().fetch(query, *args, **kwargs)
             return result
 
         async def fetchval(self, query, *args, **kwargs):
-            # query, params = compile_query(query, dialect=self._dialect)
+            query, params = compile_query(query, dialect=self._dialect)
+            args = params or args
             return await super().fetchval(query, *args, **kwargs)
 
         async def fetchrow(self, query, *args, **kwargs):
-            # query, params = compile_query(query, dialect=self._dialect)
+            query, params = compile_query(query, dialect=self._dialect)
+            args = params or args
             result = await super().fetchrow(query, *args, **kwargs)
             return result
 
