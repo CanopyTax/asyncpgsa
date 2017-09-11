@@ -3,3 +3,4 @@ pytest
 pytest-asyncio
 pytest-capturelog>=0.7
 sqlalchemy
+psycopg2

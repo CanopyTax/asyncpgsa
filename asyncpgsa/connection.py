@@ -90,13 +90,14 @@ def compile_query(query, dialect=_dialect, inline=False):
             return new_query
         return new_query, new_params
 
-
-# def get_saconnection_class(superclass=connection.Connection):
-    # making the super class dynamic makes it easier to mock for testing
-
+      
 class SAConnection(connection.Connection):
-    # __slots__ = ('_dialect')
     _dialect = None
+
+    def __init__(self, *args, dialect=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self._dialect = dialect or _dialect
 
     def _execute(self, query, args, limit, timeout, return_status=False):
         query, compiled_args = compile_query(query, dialect=self._dialect)
@@ -111,20 +112,16 @@ class SAConnection(connection.Connection):
         return RecordGenerator(result)
 
     async def prepare(self, query, **kwargs):
-        # query, params = compile_query(query, dialect=self._dialect)
         return await super().prepare(query, **kwargs)
 
-    async def fetch(self, query, *args, **kwargs) -> list:
-        # query, params = compile_query(query, dialect=self._dialect)
+    async def fetch(self, query, *args, **kwargs) -> RecordGenerator:
         result = await super().fetch(query, *args, **kwargs)
         return RecordGenerator(result)
 
     async def fetchval(self, query, *args, **kwargs):
-        # query, params = compile_query(query, dialect=self._dialect)
         return await super().fetchval(query, *args, **kwargs)
 
     async def fetchrow(self, query, *args, **kwargs):
-        # query, params = compile_query(query, dialect=self._dialect)
         result = await super().fetchrow(query, *args, **kwargs)
         return Record(result)
 
