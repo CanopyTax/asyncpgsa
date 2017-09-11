@@ -1,16 +1,32 @@
 from asyncio import Queue
 
+from asyncpg.connection import Connection
+
 from .mockpreparedstmt import MockPreparedStatement
+
+results = Queue()
+completed_queries = []
 
 
 class MockConnection:
-    def __init__(self):
-        self.results = Queue()
-        self.completed_queries = []
+    __slots__ = Connection.__slots__
+
+    @property
+    def completed_queries(self):
+        return completed_queries
+
+    @property
+    def results(self):
+        return results
+
+    @results.setter
+    def results(self, result):
+        global results
+        results = result
 
     async def general_query(self, query, *args, **kwargs):
-        self.completed_queries.append((query, *args, kwargs))
-        return self.results.get_nowait()
+        completed_queries.append((query, *args, kwargs))
+        return results.get_nowait()
 
     execute = fetch = fetchval = fetchrow = general_query
 

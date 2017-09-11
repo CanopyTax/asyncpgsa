@@ -3,14 +3,14 @@ from functools import wraps
 import asyncpg
 
 from .transactionmanager import ConnectionTransactionContextManager
-from .connection import get_saconnection_class
+from .connection import SAConnection
 
 
 @wraps(asyncpg.create_pool)
 def create_pool(*args,
                 dialect=None,
                 **connect_kwargs):
-    connection_class = get_saconnection_class()
+    connection_class = SAConnection
     connection_class._dialect = dialect
 
     # dict is fine on the pool object as there is usually only one of them
