@@ -101,44 +101,8 @@ class SAConnection(connection.Connection):
         return super()._execute(query, args, limit, timeout,
                                 return_status=return_status)
 
-    def cursor(self, query, *args, **kwargs):
-        query, params = compile_query(query, dialect=self._dialect)
-        result = super().cursor(query, *params, *args, **kwargs)
-        return result
-
     async def execute(self, script, *args, **kwargs) -> str:
         script, params = compile_query(script, dialect=self._dialect)
         args = params or args
         result = await super().execute(script, *args, **kwargs)
         return result
-
-    async def prepare(self, query, **kwargs):
-        query, params = compile_query(query, dialect=self._dialect)
-        return await super().prepare(query, *params, **kwargs)
-
-    async def fetch(self, query, *args, **kwargs) -> list:
-        query, params = compile_query(query, dialect=self._dialect)
-        args = params or args
-        result = await super().fetch(query, *args, **kwargs)
-        return result
-
-    async def fetchval(self, query, *args, **kwargs):
-        query, params = compile_query(query, dialect=self._dialect)
-        args = params or args
-        return await super().fetchval(query, *args, **kwargs)
-
-    async def fetchrow(self, query, *args, **kwargs):
-        query, params = compile_query(query, dialect=self._dialect)
-        args = params or args
-        result = await super().fetchrow(query, *args, **kwargs)
-        return result
-
-    async def insert(self, query, *args, id_col_name: str = 'id', **kwargs):
-        if not (isinstance(query, InsertObject) or
-                isinstance(query, str)):
-            raise ValueError('Query must be an insert object or raw sql string')
-        query, params = compile_query(query, dialect=self._dialect)
-        if id_col_name is not None:
-            query += ' RETURNING ' + id_col_name
-
-        return await self.fetchval(query, *params, *args, **kwargs)
