@@ -91,9 +91,9 @@ def compile_query(query, dialect=_dialect, inline=False):
 
 
 class SAConnection(connection.Connection):
-    def __init__(self, *args, **kwargs):
-        self._dialect = _dialect
+    def __init__(self, *args, dialect=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self._dialect = dialect or _dialect
 
     def _execute(self, query, args, limit, timeout, return_status=False):
         query, compiled_args = compile_query(query, dialect=self._dialect)
