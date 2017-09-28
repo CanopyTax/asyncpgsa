@@ -25,6 +25,9 @@ class Record:
     def __bool__(self):
         return self.row is not None
 
+    def __repr__(self):
+        return self.row.__repr__()
+
 
 class RecordGenerator:
     __slots__ = ('data', 'iter')
