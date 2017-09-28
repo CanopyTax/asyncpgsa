@@ -106,3 +106,8 @@ class SAConnection(connection.Connection):
         args = params or args
         result = await super().execute(script, *args, **kwargs)
         return result
+
+    def cursor(self, query, *args, prefetch=None, timeout=None):
+        query, compiled_args = compile_query(query, dialect=self._dialect)
+        args = compiled_args or args
+        return super().cursor(query, *args, prefetch=prefetch, timeout=timeout)
