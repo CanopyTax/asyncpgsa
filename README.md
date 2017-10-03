@@ -16,6 +16,12 @@ for an example of creating a dialect. Please let me know if the change from
 psycopg2 to pypostgres broke you. If this happens enough, 
 I might make psycopg2 the default.
 
+2. 0.18.0 Removes the Record Proxy objects that would wrap asyncpg's records. Now
+asyncpgsa just returns whatever asyncpg would return. This is a HUGE backwards incompatible change
+but most people just used record._data to get the object directly anyways. This means dot notation
+for columns is no longer possible and you need to access columns using exact names with dictionary notation.
+
+
 ## sqlalchemy ORM
 
 Currently this repo does not support SA ORM, only SA Core.
