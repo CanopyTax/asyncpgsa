@@ -35,9 +35,9 @@ async def test_pg_query_async_with_statement():
     async with ps as cursor:
         row = sentinel = object()
         async for row in cursor:
-            assert row.a == 4.0
-            assert row.b == 6.0
-            assert row.c == 5.0
+            assert row['a'] == 4.0
+            assert row['b'] == 6.0
+            assert row['c'] == 5.0
         if row is sentinel:
             pytest.fail('Cursor had no data')
 
@@ -48,9 +48,9 @@ async def test_pg_query_with_bad_with_statement():
     with pytest.raises(SyntaxError) as exc_info:
         with ps as cursor:
             async for row in cursor:
-                assert row.a == 4.0
-                assert row.b == 6.0
-                assert row.c == 5.0
+                assert row['a'] == 4.0
+                assert row['b'] == 6.0
+                assert row['c'] == 5.0
 
             result = 2
 
@@ -71,17 +71,17 @@ async def test_pg_queury_with_await():
     results = await ps
     row = sentinel = object()
     for row in results:
-        assert row.a == 4.0
-        assert row.b == 6.0
-        assert row.c == 5.0
+        assert row['a'] == 4.0
+        assert row['b'] == 6.0
+        assert row['c'] == 5.0
     if row is sentinel:
         pytest.fail('No results')
 
 async def test_fetch():
     for row in await pg.fetch(query):
-        assert row.a == 4.0
-        assert row.b == 6.0
-        assert row.c == 5.0
+        assert row['a'] == 4.0
+        assert row['b'] == 6.0
+        assert row['c'] == 5.0
 
     assert 1 == 1
 
@@ -95,9 +95,9 @@ async def test_fetch_nonetype():
 
 async def test_fetchrow():
     row = await pg.fetchrow(query)
-    assert row.a == 4.0
-    assert row.b == 6.0
-    assert row.c == 5.0
+    assert row['a'] == 4.0
+    assert row['b'] == 6.0
+    assert row['c'] == 5.0
 
 
 async def test_fetchrow_nonetype():
@@ -143,10 +143,10 @@ async def test_execute_with_sa_arguments():
 async def test_transaction():
     async with pg.transaction() as conn:
         for row in await conn.fetch(query):
-            assert row.a == 4.0
+            assert row['a'] == 4.0
 
 
 async def test_begin():
     async with pg.begin() as conn:
         for row in await conn.fetch(query):
-            assert row.a == 4.0
+            assert row['a'] == 4.0

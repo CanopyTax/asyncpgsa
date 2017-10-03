@@ -5,7 +5,7 @@ async def test_use_fetchrow():
     pg = MockPG()
     pg.set_database_results({'sqrt': 3})
     result = await pg.fetchrow('SELECT * FROM sqrt(16);')
-    assert result.sqrt == 3
+    assert result['sqrt'] == 3
 
 
 async def test_use_fetchval():
@@ -19,4 +19,4 @@ async def test_use_fetch():
     pg = MockPG()
     pg.set_database_results([{'sqrt': 3}])
     result = await pg.fetch('SELECT * FROM sqrt(16);')
-    assert next(result).sqrt == 3
+    assert result[0]['sqrt'] == 3

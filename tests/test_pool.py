@@ -20,7 +20,7 @@ def pool(event_loop):
 async def test_pool_basic(pool):
     con = await pool.acquire()
     result = await con.fetch('SELECT * FROM sqrt(16)')
-    assert next(result).sqrt == 4.0
+    assert result[0]['sqrt'] == 4.0
     await pool.close()
 
 
@@ -28,7 +28,7 @@ async def test_pool_connection_transaction_context_manager(pool):
     async with pool.transaction() as conn:
         result = await conn.fetch('SELECT * FROM sqrt(16)')
 
-    assert next(result).sqrt == 4.0
+    assert result[0]['sqrt'] == 4.0
 
 
 async def test_use_sqlalchemy_with_escaped_params(pool):
@@ -45,10 +45,10 @@ async def test_use_sqlalchemy_with_escaped_params(pool):
     async with pool.transaction() as conn:
         result = await conn.fetch(query)
 
-    row = next(result)
-    assert row.a == 4.0
-    assert row.b == 6.0
-    assert row.c == 5.0
+    row = result[0]
+    assert row['a'] == 4.0
+    assert row['b'] == 6.0
+    assert row['c'] == 5.0
 
 
 async def test_use_sa_core_objects(pool):
@@ -67,11 +67,11 @@ async def test_use_sa_core_objects(pool):
 
     for row in result:
         # just making sure none of these throw KeyError exceptions
-        assert isinstance(row.schemaname, str)
-        assert hasattr(row, 'tablename')
-        assert hasattr(row, 'tableowner')
-        assert hasattr(row, 'tablespace')
-        assert hasattr(row, 'hasindexes')
+        assert isinstance(row['schemaname'], str)
+        assert 'tablename' in row
+        assert 'tableowner' in row
+        assert 'tablespace' in row
+        assert 'hasindexes' in row
 
 
 async def test_with_without_async_should_throw_exception(pool):

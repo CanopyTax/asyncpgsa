@@ -6,7 +6,6 @@ from sqlalchemy.sql import ClauseElement
 from sqlalchemy.sql.dml import Insert as InsertObject, Update as UpdateObject
 
 from .log import query_logger
-from .record import RecordGenerator, Record
 
 _dialect = pypostgresql.dialect()
 _dialect.implicit_returning = True
@@ -90,13 +89,10 @@ def compile_query(query, dialect=_dialect, inline=False):
             return new_query
         return new_query, new_params
 
-      
-class SAConnection(connection.Connection):
-    _dialect = None
 
+class SAConnection(connection.Connection):
     def __init__(self, *args, dialect=None, **kwargs):
         super().__init__(*args, **kwargs)
-
         self._dialect = dialect or _dialect
 
     def _execute(self, query, args, limit, timeout, return_status=False):
@@ -109,28 +105,9 @@ class SAConnection(connection.Connection):
         script, params = compile_query(script, dialect=self._dialect)
         args = params or args
         result = await super().execute(script, *args, **kwargs)
-        return RecordGenerator(result)
+        return result
 
-    async def prepare(self, query, **kwargs):
-        return await super().prepare(query, **kwargs)
-
-    async def fetch(self, query, *args, **kwargs) -> RecordGenerator:
-        result = await super().fetch(query, *args, **kwargs)
-        return RecordGenerator(result)
-
-    async def fetchval(self, query, *args, **kwargs):
-        return await super().fetchval(query, *args, **kwargs)
-
-    async def fetchrow(self, query, *args, **kwargs):
-        result = await super().fetchrow(query, *args, **kwargs)
-        return Record(result)
-
-    async def insert(self, query, *args, id_col_name: str = 'id', **kwargs):
-        if not (isinstance(query, InsertObject) or
-                isinstance(query, str)):
-            raise ValueError('Query must be an insert object or raw sql string')
-        query, params = compile_query(query, dialect=self._dialect)
-        if id_col_name is not None:
-            query += ' RETURNING ' + id_col_name
-
-        return await self.fetchval(query, *params, *args, **kwargs)
+    def cursor(self, query, *args, prefetch=None, timeout=None):
+        query, compiled_args = compile_query(query, dialect=self._dialect)
+        args = compiled_args or args
+        return super().cursor(query, *args, prefetch=prefetch, timeout=timeout)

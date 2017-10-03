@@ -1,6 +1,5 @@
 from .pool import create_pool
-from .connection import compile_query, RecordGenerator
-from .record import Record
+from .connection import compile_query
 """
 this is a high level singleton for managing a pool
 """
@@ -137,7 +136,7 @@ class QueryContextManager:
         async with self.pool.acquire() as con:
             ps = await con.prepare(self.query, timeout=self.timeout)
             result = await ps.fetch(*self.args, timeout=self.timeout)
-            return RecordGenerator(result)
+            return result
 
     def __await__(self):
         return self.__run_query().__await__()
@@ -156,7 +155,7 @@ class CursorIterator:
         return self
 
     async def __anext__(self):
-        return Record(await self.iterator.__anext__())
+        return await self.iterator.__anext__()
 
 
 class CursorInterface:
