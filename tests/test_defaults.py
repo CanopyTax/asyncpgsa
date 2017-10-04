@@ -108,6 +108,7 @@ def test_update_query():
         t_date=date(2030, 1, 1),
         t_date_2=date(2030, 1, 1),
         t_interval=timedelta(seconds=180),
+        t_boolean=False
     )
     new_query, new_params = connection.compile_query(query)
     assert query.parameters.get('version')
@@ -119,4 +120,5 @@ def test_update_query():
     assert query.parameters.get('t_date') == date(2030, 1, 1)
     assert query.parameters.get('t_date_2') == date(2030, 1, 1)
     assert query.parameters.get('t_interval') == timedelta(seconds=180)
+    assert query.parameters.get('t_boolean') == False
     assert isinstance(query.parameters.get('version'), UUID)
