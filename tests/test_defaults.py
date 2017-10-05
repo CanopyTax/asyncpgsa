@@ -26,6 +26,7 @@ t_datetime_default = datetime(2017, 1, 1)
 t_date_default = date(2017, 1, 1)
 t_date_2_default = lambda: date(2017, 2, 1)
 t_interval_default = timedelta(seconds=60)
+t_boolean_default = True
 
 
 users = Table(
@@ -47,6 +48,8 @@ users = Table(
            default=t_date_2_default),
     Column('t_interval', types.Interval(), nullable=False,
            default=t_interval_default),
+    Column('t_boolean', types.Boolean(), nullable=False,
+           default=True),
     Column('version', PG_UUID,
            default=uuid4, onupdate=uuid4)
 )
@@ -64,6 +67,7 @@ def test_insert_query_defaults():
     assert query.parameters.get('t_date_2') == t_date_2_default()
     assert query.parameters.get('t_interval') == t_interval_default
     assert isinstance(query.parameters.get('version'), UUID)
+    assert query.parameters.get('t_boolean') == t_boolean_default
 
 
 def test_insert_query_defaults_override():
@@ -77,6 +81,7 @@ def test_insert_query_defaults_override():
         t_date=date(2020, 1, 1),
         t_date_2=date(2020, 1, 1),
         t_interval=timedelta(seconds=120),
+        t_boolean=False
     )
     new_query, new_params = connection.compile_query(query)
     assert query.parameters.get('version')
@@ -88,6 +93,7 @@ def test_insert_query_defaults_override():
     assert query.parameters.get('t_date') == date(2020, 1, 1)
     assert query.parameters.get('t_date_2') == date(2020, 1, 1)
     assert query.parameters.get('t_interval') == timedelta(seconds=120)
+    assert query.parameters.get('t_boolean') == False
     assert isinstance(query.parameters.get('version'), UUID)
 
 
@@ -102,6 +108,7 @@ def test_update_query():
         t_date=date(2030, 1, 1),
         t_date_2=date(2030, 1, 1),
         t_interval=timedelta(seconds=180),
+        t_boolean=False
     )
     new_query, new_params = connection.compile_query(query)
     assert query.parameters.get('version')
@@ -113,4 +120,5 @@ def test_update_query():
     assert query.parameters.get('t_date') == date(2030, 1, 1)
     assert query.parameters.get('t_date_2') == date(2030, 1, 1)
     assert query.parameters.get('t_interval') == timedelta(seconds=180)
+    assert query.parameters.get('t_boolean') == False
     assert isinstance(query.parameters.get('version'), UUID)
