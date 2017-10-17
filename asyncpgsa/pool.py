@@ -9,8 +9,8 @@ from .connection import SAConnection
 @wraps(asyncpg.create_pool)
 def create_pool(*args,
                 dialect=None,
+                connection_class=SAConnection,
                 **connect_kwargs):
-    connection_class = SAConnection
     connection_class._dialect = dialect
 
     # dict is fine on the pool object as there is usually only one of them
