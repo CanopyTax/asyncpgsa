@@ -94,12 +94,12 @@ You can also use query without a cursor and transaction by using await
     # using a cursor and and transaction isolation
     async with pg.query(select_statement) as cursor:
     	async for row in cursor:
-            a = row.col_name
+            a = row['col_name']
 
     # no cursor or isolation, all results at once
     results = await pg.query(select_statement)
     for row in results:
-        a = row.col_name
+        a = row['col_name']
 
 fetch
 +++++
@@ -108,7 +108,7 @@ Want to run a simple statement and get the results as a list? Fetch is for you.:
     from asyncpgsa import pg
 
     for row in await pg.fetch(query):
-        a = row.col_name
+        a = row['col_name']
 
 fetchrow
 ++++++++
@@ -117,7 +117,7 @@ This is just like fetch, but only returns a single row. Good for insert/update/d
     from asyncpgsa import pg
 
     row = await pg.fetchrow(query)
-    a = row.col_name
+    a = row['col_name']
 
 fetchval
 ++++++++
@@ -137,7 +137,7 @@ Everything is wrapped in a transaction for you, but if you need to do multiple t
 
    async with pg.transaction() as conn:
        for row in await conn.fetch(query):
-           a =  row.a
+           a =  row['col_name']
 
        await conn.fetchval(update_query)
 
@@ -149,7 +149,7 @@ Begin is the same as transaction, you just get to choose which word you like bes
 
     async with pg.begin() as conn:
         for row in await conn.fetch(query):
-            a =  row.a
+            a =  row['col_name']
 
         await conn.fetchval(update_query)
 
@@ -189,14 +189,14 @@ Want to run a simple statement and get the results as a list? Fetch is for you.:
     #No transaction
     async with pool.acquire() as conn:
         for row in await conn.fetch(query):
-            a = row.col_name
+            a = row['col_name']
 
     #with transaction
     async with pool.transaction() as conn:
             result = await conn.fetch(query)
 
         for row in result:
-            a = row.col_name
+            a = row['col_name']
 
 fetchrow
 ++++++++
@@ -205,7 +205,7 @@ This is just like fetch, but only returns a single row. Good for insert/update/d
     async with pool.transaction as conn:
         row = await conn.fetchrow(query)
 
-    a = row.col_name
+    a = row['col_name']
 
 fetchval
 ++++++++
