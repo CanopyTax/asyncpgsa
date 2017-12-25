@@ -1,6 +1,5 @@
 asyncpg~=0.12.0
 pytest
 pytest-asyncio
-pytest-capturelog>=0.7
 sqlalchemy
 psycopg2
