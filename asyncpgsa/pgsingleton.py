@@ -45,7 +45,7 @@ class PG:
         Use the following syntax for a cursor
         async with query() as cursor:
             async for row in cursor:
-                a = row.col_name
+                a = row['col_name']
 
         or the following for a all results and no cursor/transaction:
         results = await query()
