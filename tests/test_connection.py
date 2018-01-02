@@ -125,9 +125,9 @@ async def test_compile_query_debug(caplog):
         .values(id=None) \
         .where(file_table.c.id.in_(ids))
 
-    with caplog.atLevel(logging.DEBUG, logger='asyncpgsa.query'):
+    with caplog.at_level(logging.DEBUG, logger='asyncpgsa.query'):
         results, _ = connection.compile_query(query)
-        msgs = [record.msg for record in caplog.records()]
+        msgs = [record.msg for record in caplog.records]
         assert results in msgs
 
 
@@ -139,7 +139,7 @@ async def test_compile_query_no_debug(caplog):
         .values(id=None) \
         .where(file_table.c.id.in_(ids))
 
-    with caplog.atLevel(logging.WARNING, logger='asyncpgsa.query'):
+    with caplog.at_level(logging.WARNING, logger='asyncpgsa.query'):
         results, _ = connection.compile_query(query)
-        msgs = [record.msg for record in caplog.records()]
+        msgs = [record.msg for record in caplog.records]
         assert results not in msgs

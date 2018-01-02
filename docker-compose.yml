@@ -1,6 +1,25 @@
-postgres:
-  image: postgres
-  environment: 
-    POSTGRES_PASSWORD: password
-  ports:
-    - "5432:5432"
+version: "3"
+
+services:
+  tests:
+    build:
+      context: .
+    working_dir: /repo
+    command: pytest ./tests -s -vvv --log-level=DEBUG
+    depends_on:
+      - postgres
+    links:
+      - postgres
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=postgres
+      - DB_USER=postgres
+      - DB_PASS=password
+  postgres:
+    image: postgres
+    hostname: postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
