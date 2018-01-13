@@ -1,7 +1,6 @@
 from .pool import create_pool
 from .pgsingleton import PG
 from .connection import compile_query
+from .version import __version__
 
-__version__ = '0.18.2'
 pg = PG()
-
