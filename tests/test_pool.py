@@ -79,8 +79,8 @@ async def test_with_without_async_should_throw_exception(pool):
         with pool.transaction() as conn:
             result = await conn.fetch('SELECT * FROM sqrt(16)')
 
-        raise Exception('Should have thrown SyntaxError')
-    except SyntaxError as e:
+        raise Exception('Should have thrown RuntimeError')
+    except RuntimeError as e:
         assert str(e) == 'Must use "async with" for a transaction'
 
 async def test_falsyness_of_rows_on_fetch(pool):

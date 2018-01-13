@@ -6,7 +6,7 @@ class MockTransactionManager:
         self.connection = connection
 
     def __enter__(self):
-        raise SyntaxError('Must use "async with" for a transaction')
+        raise RuntimeError('Must use "async with" for a transaction')
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
