@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 from setuptools import setup
 
+version = {}
+
+with open('asyncpgsa/version.py') as f:
+    exec(f.read(), version)
+
 setup(
     name='asyncpgsa',
-    version=__import__('asyncpgsa').__version__,
+    version=version['__version__'],
     install_requires=[
         'asyncpg~=0.12.0',
         'sqlalchemy',
