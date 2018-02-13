@@ -67,7 +67,7 @@ def execute_defaults(query):
         if attr and query.parameters.get(col.name) is None:
             if attr.is_scalar:
                 query.parameters[col.name] = attr.arg
-            elif col.default.is_callable:
+            elif col.default and col.default.is_callable:
                 query.parameters[col.name] = attr.arg({})
 
     return query
