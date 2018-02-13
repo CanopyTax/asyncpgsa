@@ -115,7 +115,7 @@ class QueryContextManager:
         self._con = None
 
     def __enter__(self):
-        raise SyntaxError('Must use "async with"')
+        raise RuntimeError('Must use "async with"')
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
