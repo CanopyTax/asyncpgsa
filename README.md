@@ -21,9 +21,7 @@ asyncpgsa just returns whatever asyncpg would return. This is a HUGE backwards i
 but most people just used record._data to get the object directly anyways. This means dot notation
 for columns is no longer possible and you need to access columns using exact names with dictionary notation.
 
-3. 0.18.0 Adds json parsing automatically. If any of your code json decoded the string from a json column, the decoding is now done for you, so you wont want to decode it anymore, or you will get an error.
-
-4. 0.18.0 Removed the `insert` method. We found this method was just confusing, and useless as SqlAlchemy can do it for you by defining your table with a primary key.
+3. 0.18.0 Removed the `insert` method. We found this method was just confusing, and useless as SqlAlchemy can do it for you by defining your table with a primary key.
 
 
 ## sqlalchemy ORM
