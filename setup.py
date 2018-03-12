@@ -10,7 +10,7 @@ setup(
     name='asyncpgsa',
     version=version['__version__'],
     install_requires=[
-        'asyncpg~=0.14.0',
+        'asyncpg~=0.15.0',
         'sqlalchemy',
     ],
     packages=['asyncpgsa', 'asyncpgsa.testing'],
