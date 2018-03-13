@@ -45,79 +45,32 @@ file_type_table = sa.Table(
 )
 
 
-async def test__replace_keys():
-    ids = list(range(1, 10))
+def test_compile_query():
+    ids = list(range(1, 4))
     query = file_table.update() \
         .values(id=None) \
         .where(file_table.c.id.in_(ids))
-    compiled = query.compile(dialect=connection._dialect)
-    params = connection._get_keys(compiled)
-    new_query = connection._replace_keys(compiled.string, params)
-    assert new_query[0] == 'UPDATE meows SET id=$1 WHERE meows.id IN ' \
-                           '($2, $3, $4, $5, $6, $7, $8, $9, $10)'
-    assert new_query[1] == [None, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    q, p = connection.compile_query(query)
+    assert q == 'UPDATE meows SET id=$1 WHERE meows.id IN ($2, $3, $4)'
+    assert p == [None, 1, 2, 3]
 
 
-async def test__replace_keys_colon():
-    sql = sa.text('SELECT :id, my_date::DATE FROM users')
-    params = {
-        'id': 123,
-    }
-    sql = sql.params(**params)
-
+def test_compile_text_query():
+    sql = sa.text('SELECT :id, my_date::DATE FROM users').params(id=123)
     q, p = connection.compile_query(sql)
     assert q == 'SELECT $1, my_date::DATE FROM users'
     assert p == [123]
 
 
-async def test__get_keys():
-    ids = list(range(1, 10))
-    query = file_table.update() \
-        .values(id=None) \
-        .where(file_table.c.id.in_(ids))
-    compiled = query.compile(dialect=connection._dialect)
-    connection._get_keys(compiled)
+def test_compile_query_with_custom_column_type():
+    query = file_type_table.insert() \
+        .values(type=FileTypes.PDF, name='abc')
+    q, p = connection.compile_query(query)
+    assert q == 'INSERT INTO meows2 (type, name) VALUES ($1, $2)'
+    assert p == ['PDF', 'abc']
 
 
-async def test__get_keys_with_custom_column_type():
-    query = (file_type_table.insert()
-                            .values(type=FileTypes.PDF, name='abc'))
-    compiled = query.compile(dialect=connection._dialect)
-    params = dict(connection._get_keys(compiled))
-    assert not isinstance(params['type'], FileTypes)
-    assert isinstance(params['type'], str)
-    assert isinstance(params['name'], str)
-    assert params['type'] == 'PDF'  # stringified
-    assert params['name'] == 'abc'
-
-    query = (sa.select([file_type_table])
-               .where(file_type_table.c.type == FileTypes.TEXT))
-    compiled = query.compile(dialect=connection._dialect)
-    params = dict(connection._get_keys(compiled))
-    assert not isinstance(params['type_1'], FileTypes)
-    assert isinstance(params['type_1'], str)
-    assert params['type_1'] == 'TEXT'  # stringified
-
-
-async def test_compile_query(monkeypatch):
-    def mock(*args):
-        return 'bob'
-    monkeypatch.setattr('asyncpgsa.connection._get_keys', mock)
-
-    def mock(*args):
-        return 'bob', 'sally'
-    monkeypatch.setattr('asyncpgsa.connection._replace_keys',
-                        mock)
-    ids = list(range(1, 40))
-    query = file_table.update() \
-        .values(id=None) \
-        .where(file_table.c.id.in_(ids))
-
-    results = connection.compile_query(query)
-    assert ('bob', 'sally') == results
-
-
-async def test_compile_query_debug(caplog):
+def test_compile_query_debug(caplog):
     """Validates that the query is printed to stdout
     when the debug flag is enabled."""
     ids = list(range(1, 3))
@@ -131,7 +84,7 @@ async def test_compile_query_debug(caplog):
         assert results in msgs
 
 
-async def test_compile_query_no_debug(caplog):
+def test_compile_query_no_debug(caplog):
     """Validates that no output is printed when
     the debug flag is disabled."""
     ids = list(range(1, 3))
