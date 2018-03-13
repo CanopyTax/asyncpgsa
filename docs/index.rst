@@ -26,8 +26,9 @@ As we at canopy do not use the ORM, if you would like to have ORM support feel f
 
 Install
 =======
-::
- 
+
+.. code-block::
+
     pip install asyncpgsa
 
 
@@ -37,7 +38,9 @@ There are two ways to use this library, the first is by establishing a pool, and
 
 Query Object
 ^^^^^^^^^^^^
-all there examples use the variable ``query``, this is a query object. It can either be a string or a sqlalchemy core statement. Here are some examples::
+all there examples use the variable ``query``, this is a query object. It can either be a string or a sqlalchemy core statement. Here are some examples
+
+.. code-block:: python
 
     # string
     query = 'select * from sqrt(16)'
@@ -68,7 +71,9 @@ If you want the highest level of abstraction, you can can use the singleton obje
 
 Init 
 ++++ 
-Before you can run any queries you first have to initialize the pool::
+Before you can run any queries you first have to initialize the pool
+
+.. code-block:: python
 
     await pg.init(
     	host=HOST,
@@ -87,7 +92,8 @@ Query is for making read only select statements.
 This method will create a prepared statement for you and return a cursor object that will get a couple rows at a time from the database.
 This is great for select statements with lots of results.
 You can also use query without a cursor and transaction by using await
-::
+
+.. code-block:: python
 
     from asyncpgsa import pg
 
@@ -101,9 +107,12 @@ You can also use query without a cursor and transaction by using await
     for row in results:
         a = row['col_name']
 
+
 fetch
 +++++
-Want to run a simple statement and get the results as a list? Fetch is for you.::
+Want to run a simple statement and get the results as a list? Fetch is for you.
+
+.. code-block:: python
 
     from asyncpgsa import pg
 
@@ -112,7 +121,9 @@ Want to run a simple statement and get the results as a list? Fetch is for you.:
 
 fetchrow
 ++++++++
-This is just like fetch, but only returns a single row. Good for insert/update/delete calls.::
+This is just like fetch, but only returns a single row. Good for insert/update/delete calls.
+
+.. code-block:: python
 
     from asyncpgsa import pg
 
@@ -123,7 +134,9 @@ fetchval
 ++++++++
 Like fetch row but also only a single column. Dont bother getting the whole row when you only need a single value
 
-Column is a 0 index value.::
+Column is a 0 index value.
+
+.. code-block:: python
 
     from asyncpgsa import pg
 
@@ -131,7 +144,9 @@ Column is a 0 index value.::
 
 Transaction
 +++++++++++
-Everything is wrapped in a transaction for you, but if you need to do multiple things in a single transaction, then establish a transaction using an ``async with`` block. Commits and rollbacks will be handled for you.::
+Everything is wrapped in a transaction for you, but if you need to do multiple things in a single transaction, then establish a transaction using an ``async with`` block. Commits and rollbacks will be handled for you.
+
+.. code-block:: python
 
    from asyncpgsa import pg
 
@@ -143,7 +158,9 @@ Everything is wrapped in a transaction for you, but if you need to do multiple t
 
 Begin
 +++++
-Begin is the same as transaction, you just get to choose which word you like best::
+Begin is the same as transaction, you just get to choose which word you like best
+
+.. code-block:: python
 
     from asyncpgsa import pg
 
@@ -159,7 +176,7 @@ If you dont mind passing around the pool object, you can use a pool directly. Wi
 
 Creating the pool
 +++++++++++++++++
-::
+.. code-block:: python
 
     import asyncpgsa
     pool = await asyncpgsa.create_pool(
@@ -175,7 +192,9 @@ Creating the pool
 
 Transaction 
 +++++++++++
-The transaction context manager will establish a connection and start a transaction all at once. It returns the connection object. Commits and rollbacks will be handled for you.::
+The transaction context manager will establish a connection and start a transaction all at once. It returns the connection object. Commits and rollbacks will be handled for you.
+
+.. code-block:: python
 
     async with pool.transaction() as conn:
         # do something with conn
@@ -184,7 +203,9 @@ The transaction context manager will establish a connection and start a transact
 
 fetch
 +++++
-Want to run a simple statement and get the results as a list? Fetch is for you.::
+Want to run a simple statement and get the results as a list? Fetch is for you.
+
+.. code-block:: python
 
     #No transaction
     async with pool.acquire() as conn:
@@ -200,7 +221,9 @@ Want to run a simple statement and get the results as a list? Fetch is for you.:
 
 fetchrow
 ++++++++
-This is just like fetch, but only returns a single row. Good for insert/update/delete calls.::
+This is just like fetch, but only returns a single row. Good for insert/update/delete calls.
+
+.. code-block:: python
 
     async with pool.transaction as conn:
         row = await conn.fetchrow(query)
@@ -211,15 +234,41 @@ fetchval
 ++++++++
 Like fetch row but also only a single column. Dont bother getting the whole row when you only need a single value
 
-Column is a 0 index value.::
+Column is a 0 index value.
+
+.. code-block:: python
 
     async with pool.transaction as conn:
         value = await conn.fetchval(query, column=0)
 
 
+jsonb
++++++
+
+.. code-block:: python
+
+    import json
+    import ujson
+
+    async def main():
+         async def set_json_charset(connection):
+             await connection.set_type_codec(
+                 'json',
+                 encoder=json.dumps,
+                 decoder=ujson.loads,
+                 schema='pg_catalog'
+             )
+
+         await pg.init("postgresql://127.0.0.1/template0", init=set_json_charset)
+
+         ...
+
+
 Compile
 =======
-If you just want to roll you own everything and use asyncpg raw without all these wrappers, you can probably do it by just using the compile method in this repo::
+If you just want to roll you own everything and use asyncpg raw without all these wrappers, you can probably do it by just using the compile method in this repo
+
+.. code-block:: python
 
     import asyncpgsa
 
@@ -244,7 +293,9 @@ Setting the responses is done by calling `mock_pg.set_database_results()` where 
 
 Example test
 ++++++++++++
-Here is an example test.::
+Here is an example test.
+
+.. code-block:: python
 
     from asyncpgsa.testing import MockPG
 
@@ -257,7 +308,9 @@ Here is an example test.::
        assert results[0].id == 1
        assert results[1].id == 2
 
-And another where there are multiple queries::
+And another where there are multiple queries
+
+.. code-block:: python
 
     from asyncpgsa.testing import MockPG
 
