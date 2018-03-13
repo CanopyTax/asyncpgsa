@@ -242,6 +242,28 @@ Column is a 0 index value.
         value = await conn.fetchval(query, column=0)
 
 
+jsonb
++++++
+
+.. code-block:: python
+
+    import json
+    import ujson
+
+    async def main():
+         async def set_json_charset(connection):
+             await connection.set_type_codec(
+                 'json',
+                 encoder=json.dumps,
+                 decoder=ujson.loads,
+                 schema='pg_catalog'
+             )
+
+         await pg.init("postgresql://127.0.0.1/template0", init=set_json_charset)
+
+         ...
+
+
 Compile
 =======
 If you just want to roll you own everything and use asyncpg raw without all these wrappers, you can probably do it by just using the compile method in this repo
