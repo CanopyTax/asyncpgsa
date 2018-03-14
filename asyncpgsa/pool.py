@@ -9,10 +9,13 @@ from .connection import SAConnection as _SAConnection
 @wraps(asyncpg.create_pool)
 def create_pool(*args,
                 dialect=None,
+                connection_class=_SAConnection,
                 **connect_kwargs):
-    class SAConnection(_SAConnection):
+
+    class SAConnection(connection_class):
         def __init__(self, *args, dialect=dialect, **kwargs):
             super().__init__(*args, dialect=dialect, **kwargs)
+
     connection_class = SAConnection
 
     # dict is fine on the pool object as there is usually only one of them
