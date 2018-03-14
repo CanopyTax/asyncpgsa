@@ -242,13 +242,14 @@ Column is a 0 index value.
         value = await conn.fetchval(query, column=0)
 
 
-jsonb
-+++++
+json
+++++
 
 .. code-block:: python
 
     import json
     import ujson
+    # NOTE: ujson is very fast but ujson.dumps is not safe.
 
     async def main():
          async def set_json_charset(connection):
