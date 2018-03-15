@@ -1,5 +1,3 @@
-import re
-
 from asyncpg import connection
 from sqlalchemy.dialects.postgresql import pypostgresql
 from sqlalchemy.sql import ClauseElement
@@ -7,7 +5,7 @@ from sqlalchemy.sql.dml import Insert as InsertObject, Update as UpdateObject
 
 from .log import query_logger
 
-_dialect = pypostgresql.dialect(paramstyle='numeric')
+_dialect = pypostgresql.dialect(paramstyle='pyformat')
 _dialect.implicit_returning = True
 _dialect.supports_native_enum = True
 _dialect.supports_smallserial = True  # 9.2+
@@ -44,12 +42,13 @@ def compile_query(query, dialect=_dialect, inline=False):
         query = execute_defaults(query)  # default values for Insert/Update
         compiled = query.compile(dialect=dialect)
 
-        new_query = re.sub(r':(\d+)', r'$\1', compiled.string)
-
+        keys = compiled.params.keys()
+        new_query = compiled.string % {key: '$' + str(i)
+                                       for i, key in enumerate(keys, start=1)}
         processors = compiled._bind_processors
         new_params = [processors[key](compiled.params[key])
                       if key in processors else compiled.params[key]
-                      for key in compiled.positiontup]
+                      for key in keys]
 
         query_logger.debug(new_query)
 
