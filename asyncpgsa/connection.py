@@ -41,14 +41,15 @@ def compile_query(query, dialect=_dialect, inline=False):
     elif isinstance(query, ClauseElement):
         query = execute_defaults(query)  # default values for Insert/Update
         compiled = query.compile(dialect=dialect)
+        compiled_params = sorted(compiled.params.items())
 
-        keys = compiled.params.keys()
-        new_query = compiled.string % {key: '$' + str(i)
-                                       for i, key in enumerate(keys, start=1)}
+        mapping = {key: '$' + str(i)
+                   for i, (key, _) in enumerate(compiled_params, start=1)}
+        new_query = compiled.string % mapping
+
         processors = compiled._bind_processors
-        new_params = [processors[key](compiled.params[key])
-                      if key in processors else compiled.params[key]
-                      for key in keys]
+        new_params = [processors[key](val) if key in processors else val
+                      for key, val in compiled_params]
 
         query_logger.debug(new_query)
 

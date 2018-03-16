@@ -63,11 +63,10 @@ def test_compile_text_query():
 
 
 def test_compile_query_with_custom_column_type():
-    query = file_type_table.insert() \
-        .values(type=FileTypes.PDF, name='abc')
+    query = file_type_table.insert().values(type=FileTypes.PDF)
     q, p = connection.compile_query(query)
-    assert q == 'INSERT INTO meows2 (type, name) VALUES ($1, $2)'
-    assert p == ['PDF', 'abc']
+    assert q == 'INSERT INTO meows2 (type) VALUES ($1)'
+    assert p == ['PDF']
 
 
 def test_compile_query_debug(caplog):
