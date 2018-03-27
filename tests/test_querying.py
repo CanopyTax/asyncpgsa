@@ -64,6 +64,14 @@ SAMPLE_DATA = [
     }
 ]
 
+MROW_SAMPLE_DATA = [
+    {
+        't_string': 'test1',
+    },
+    {
+        't_string': 'test2',
+    },
+]
 
 @pytest.fixture(scope='module')
 def metadata():
@@ -86,7 +94,7 @@ def test_querying_table(metadata):
     return Table(
         'test_querying_table_' + worker_id, metadata,
         Column('id', types.Integer, autoincrement=True, primary_key=True),
-        Column('t_string', types.String(60)),
+        Column('t_string', types.String(60), onupdate='updated'),
         Column('t_list', types.ARRAY(types.String(60))),
         Column('t_enum', types.Enum(MyEnum)),
         Column('t_int_enum', types.Enum(MyIntEnum)),
@@ -132,6 +140,7 @@ async def test_fetch_list(test_querying_table, connection):
         for key in sample_item.keys():
             assert item[key] == sample_item[key]
 
+
 async def test_bound_parameters(test_querying_table, connection):
     for sample_item in SAMPLE_DATA:
         query = test_querying_table.insert(sample_item)
@@ -173,6 +182,24 @@ async def test_bound_parameters(test_querying_table, connection):
     assert len(rows) == 2
     assert rows[0]['t_list'] == []
     assert rows[1]['t_list'] == ['foo', 'bar']
+
+
+async def test_defaults(test_querying_table, connection):
+    """Test 'default' in a multirow insert and 'onupdate' in an update."""
+    query = test_querying_table.insert().values(MROW_SAMPLE_DATA)
+    assert await connection.execute(query)
+
+    query = test_querying_table.select().order_by(test_querying_table.c.id)
+    data = list(await connection.fetch(query))
+
+    assert len(data) == len(MROW_SAMPLE_DATA)
+
+    query = test_querying_table.update().values() \
+        .where(test_querying_table.c.id == data[0]['id']) \
+        .returning(test_querying_table.c.t_string)
+    row = await connection.fetchval(query)
+    assert row == 'updated'
+
 
 # TODO: test more complex queries
 # TODO: test incorrect queries
