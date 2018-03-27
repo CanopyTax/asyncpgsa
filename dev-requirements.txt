@@ -1,4 +1,4 @@
-asyncpg~=0.14.0
+asyncpg~=0.15.0
 pytest
 pytest-asyncio
 sqlalchemy
