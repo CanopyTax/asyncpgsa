@@ -225,7 +225,7 @@ This is just like fetch, but only returns a single row. Good for insert/update/d
 
 .. code-block:: python
 
-    async with pool.transaction as conn:
+    async with pool.transaction() as conn:
         row = await conn.fetchrow(query)
 
     a = row['col_name']
@@ -238,7 +238,7 @@ Column is a 0 index value.
 
 .. code-block:: python
 
-    async with pool.transaction as conn:
+    async with pool.transaction() as conn:
         value = await conn.fetchval(query, column=0)
 
 
