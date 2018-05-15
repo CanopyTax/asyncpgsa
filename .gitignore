@@ -66,6 +66,9 @@ docs/_build/
 # PyBuilder
 target/
 
+# mypy
+.mypy_cache/
+
 # IPython Notebook
 .ipynb_checkpoints
 
@@ -87,3 +90,8 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# VisualStudioCode #
+.vscode/*
+.history
+*.code-workspace
