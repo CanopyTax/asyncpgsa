@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to asyncpgsa's 
+Welcome to asyncpgsa's
 =====================================
 
 A python library wrapper around asyncpg for use with sqlalchemy.
@@ -69,8 +69,8 @@ PG Singleton
 ^^^^^^^^^^^^
 If you want the highest level of abstraction, you can can use the singleton object. This will create a pool for you.
 
-Init 
-++++ 
+Init
+++++
 Before you can run any queries you first have to initialize the pool
 
 .. code-block:: python
@@ -87,7 +87,7 @@ Before you can run any queries you first have to initialize the pool
     )
 
 Query
-+++++ 
++++++
 Query is for making read only select statements.
 This method will create a prepared statement for you and return a cursor object that will get a couple rows at a time from the database.
 This is great for select statements with lots of results.
@@ -190,7 +190,7 @@ Creating the pool
     	max_size=10
     )
 
-Transaction 
+Transaction
 +++++++++++
 The transaction context manager will establish a connection and start a transaction all at once. It returns the connection object. Commits and rollbacks will be handled for you.
 
@@ -264,6 +264,42 @@ json
 
          ...
 
+As another option you can initialize PostgreSQL dialect with custom JSON serializer and deserializer and pass it into `pg.init`
+
+.. code-block:: python
+
+    from asyncpgsa.connection import get_dialect
+
+    async def main():
+        dialect = get_dialect(
+            json_serializer=json.dumps,
+            json_deserializer=ujson.loads
+        )
+
+        await pg.init("postgresql://127.0.0.1/template0", dialect=dialect)
+
+        ...
+
+Also you can initialize pool with custom dialect
+
+.. code-block:: python
+
+    import asyncpgsa
+    from asyncpgsa.connection import get_dialect
+
+    async def main():
+        dialect = get_dialect(
+            json_serializer=json.dumps,
+            json_deserializer=ujson.loads
+        )
+
+        await asyncpgsa.create_pool(
+            dialect=dialect,
+            ...
+        )
+
+        ...
+
 
 Compile
 =======
@@ -328,4 +364,3 @@ And another where there are multiple queries
 
 .. toctree::
    :maxdepth: 2
-
