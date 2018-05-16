@@ -1,9 +1,13 @@
 import enum
+import json
 import logging
+import uuid
+from functools import partial
+
+import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 from asyncpgsa import connection
-import sqlalchemy as sa
-
 
 file_table = sa.Table(
     'meows', sa.MetaData(),
@@ -95,3 +99,29 @@ def test_compile_query_no_debug(caplog):
         results, _ = connection.compile_query(query)
         msgs = [record.msg for record in caplog.records]
         assert results not in msgs
+
+
+def test_compile_jsonb_with_custom_json_encoder():
+    jsonb_table = sa.Table(
+        'meowsb', sa.MetaData(),
+        sa.Column('data', postgresql.JSONB),
+    )
+
+    class JSONEncoder(json.JSONEncoder):
+        def default(self, o):
+            if isinstance(o, uuid.UUID):
+                return str(o)
+            else:
+                return super().default(o)
+
+    dialect = connection.get_dialect(
+        json_serializer=partial(json.dumps, cls=JSONEncoder)
+    )
+
+    data = {
+        'uuid4': uuid.uuid4(),
+    }
+    query = jsonb_table.insert().values(data=data)
+    q, p = connection.compile_query(query, dialect=dialect)
+    assert q == 'INSERT INTO meowsb (data) VALUES ($1)'
+    assert p == ['{"uuid4": "%s"}' % data['uuid4']]

@@ -5,13 +5,21 @@ from sqlalchemy.sql.dml import Insert as InsertObject, Update as UpdateObject
 
 from .log import query_logger
 
-_dialect = pypostgresql.dialect(paramstyle='pyformat')
-_dialect.implicit_returning = True
-_dialect.supports_native_enum = True
-_dialect.supports_smallserial = True  # 9.2+
-_dialect._backslash_escapes = False
-_dialect.supports_sane_multi_rowcount = True  # psycopg 2.0.9+
-_dialect._has_native_hstore = True
+
+def get_dialect(**kwargs):
+    dialect = pypostgresql.dialect(paramstyle='pyformat', **kwargs)
+
+    dialect.implicit_returning = True
+    dialect.supports_native_enum = True
+    dialect.supports_smallserial = True  # 9.2+
+    dialect._backslash_escapes = False
+    dialect.supports_sane_multi_rowcount = True  # psycopg 2.0.9+
+    dialect._has_native_hstore = True
+
+    return dialect
+
+
+_dialect = get_dialect()
 
 
 def execute_defaults(query):
