@@ -22,6 +22,10 @@ class PG:
                                       'before you can make queries')
         else:
             return self.__pool
+        
+    @property
+    def initialized(self):
+        return bool(self.__pool)
 
     async def init(self, *args, dialect=None, **kwargs):
         """
