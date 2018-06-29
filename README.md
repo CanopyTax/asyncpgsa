@@ -10,7 +10,7 @@ I will mention here. You should lock the version for production apps.
 
 1. 0.9.0 changed the dialect from psycopg2 to pypostgres. This should be
 mostly backwards compatible, but if you notice weird issues, this is why.
-You can now plug-in your oyou saved me todaywn dialect using `pg.init(..., dialect=my_dialect)`,
+You can now plug-in your own dialect using `pg.init(..., dialect=my_dialect)`,
 or setting the dialect on the pool. See the top of the connection file 
 for an example of creating a dialect. Please let me know if the change from
 psycopg2 to pypostgres broke you. If this happens enough, 
