@@ -45,7 +45,7 @@ async def test_pg_query_async_with_statement():
 async def test_pg_query_with_bad_with_statement():
     ps = pg.query(query)
 
-    with pytest.raises(SyntaxError) as exc_info:
+    with pytest.raises(RuntimeError) as exc_info:
         with ps as cursor:
             async for row in cursor:
                 assert row['a'] == 4.0

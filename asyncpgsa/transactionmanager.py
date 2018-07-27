@@ -1,3 +1,4 @@
+import asyncio
 
 
 class ConnectionTransactionContextManager:
@@ -22,7 +23,7 @@ class ConnectionTransactionContextManager:
         self.trans_kwargs = kwargs
 
     def __enter__(self):
-        raise SyntaxError('Must use "async with" for a transaction')
+        raise RuntimeError('Must use "async with" for a transaction')
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
@@ -35,5 +36,10 @@ class ConnectionTransactionContextManager:
         return con
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.transaction.__aexit__(exc_type, exc_val, exc_tb)
-        await self.acquire_context.__aexit__(exc_type, exc_val, exc_tb)
+        async def _close():
+            try:
+                await self.transaction.__aexit__(exc_type, exc_val, exc_tb)
+            finally:
+                await self.acquire_context.__aexit__(exc_type, exc_val, exc_tb)
+
+        await asyncio.shield(_close())
