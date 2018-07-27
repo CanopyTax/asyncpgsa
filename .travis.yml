@@ -6,7 +6,7 @@ services:
 python:
   - "3.5"
   - "3.6"
-  - "3.7"
+  # - "3.7"  # are not supported yet
 #  - "nightly" 
 # command to install dependencies
 install:
