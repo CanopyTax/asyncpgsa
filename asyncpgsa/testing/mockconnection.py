@@ -8,8 +8,11 @@ results = Queue()
 completed_queries = []
 
 
-class MockConnection:
-    __slots__ = Connection.__slots__
+class MockConnection(Connection):
+    # __slots__ = Connection.__slots__
+
+    def __init__(self):
+        pass
 
     @property
     def completed_queries(self):
@@ -46,3 +49,6 @@ class MockConnection:
         async def get_conn():
             return self
         return get_conn()
+
+    def __del__(self):
+        pass

@@ -2,18 +2,22 @@ import asyncpgsa
 import pytest
 import sqlalchemy as sa
 
-from . import HOST, PORT, USER, PASS
+from . import HOST, PORT, USER, PASS, DB_NAME
 
 
 @pytest.fixture(scope='function')
 def pool(event_loop):
-    _pool = event_loop.run_until_complete(asyncpgsa.create_pool(host=HOST,
-                                                                port=PORT,
-                                                                database='postgres',
-                                                                user=USER,
-                                                                password=PASS,
-                                                                min_size=1,
-                                                                max_size=10))
+    _pool = event_loop.run_until_complete(
+        asyncpgsa.create_pool(
+            host=HOST,
+            port=PORT,
+            database=DB_NAME,
+            user=USER,
+            password=PASS,
+            min_size=1,
+            max_size=10
+        )
+    )
     yield _pool
 
 
@@ -21,7 +25,7 @@ async def test_pool_basic(pool):
     con = await pool.acquire()
     result = await con.fetch('SELECT * FROM sqrt(16)')
     assert result[0]['sqrt'] == 4.0
-    await pool.close()
+    await pool.release(con)
 
 
 async def test_pool_connection_transaction_context_manager(pool):
@@ -83,8 +87,9 @@ async def test_with_without_async_should_throw_exception(pool):
     except RuntimeError as e:
         assert str(e) == 'Must use "async with" for a transaction'
 
+
 async def test_falsyness_of_rows_on_fetch(pool):
     async with pool.acquire() as conn:
         rows = await conn.fetch('SELECT * FROM pg_stat_activity '
-                                  'WHERE pid=400')
+                                'WHERE pid=400')
         assert bool(rows) == False

@@ -12,9 +12,9 @@ class MockPG:
     def __init__(self):
 
         # connection_class = SAConnection
-        SAConnection.__bases__ = (MockConnection,)
+        # SAConnection.__bases__ = (MockConnection,)
         # self.connection = connection_class()
-        self.connection = SAConnection()
+        self.connection = MockConnection()
         self.__pool = MockSAPool(connection=self.connection)
 
     def get_completed_queries(self):
@@ -59,5 +59,3 @@ class MockQueryContextManager:
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         pass
-
-
