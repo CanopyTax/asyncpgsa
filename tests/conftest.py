@@ -12,7 +12,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
         return list(collector._genfunctions(name, obj))
 
 
-@pytest.fixture
+@pytest.fixture(scope='function')
 def pool(event_loop):
     from asyncpgsa import create_pool
     from . import HOST, PORT, USER, PASS, DB_NAME
@@ -25,7 +25,8 @@ def pool(event_loop):
         user=USER,
         password=PASS,
         database=DB_NAME,
-        loop=event_loop,
+        timeout=1,
+        loop=event_loop
     )
 
     event_loop.run_until_complete(pool)
@@ -36,9 +37,9 @@ def pool(event_loop):
         event_loop.run_until_complete(pool.close())
 
 
-@pytest.fixture
+@pytest.fixture(scope='function')
 def connection(pool, event_loop):
-    conn = event_loop.run_until_complete(pool.acquire())
+    conn = event_loop.run_until_complete(pool.acquire(timeout=2))
 
     try:
         yield conn

@@ -2,7 +2,6 @@ from asyncio import Queue
 
 from asyncpgsa.connection import compile_query
 from asyncpgsa.pgsingleton import CursorInterface
-from asyncpgsa.connection import SAConnection
 
 from .mockpool import MockSAPool
 from .mockconnection import MockConnection
@@ -12,9 +11,8 @@ class MockPG:
     def __init__(self):
 
         # connection_class = SAConnection
-        SAConnection.__bases__ = (MockConnection,)
         # self.connection = connection_class()
-        self.connection = SAConnection()
+        self.connection = MockConnection()
         self.__pool = MockSAPool(connection=self.connection)
 
     def get_completed_queries(self):

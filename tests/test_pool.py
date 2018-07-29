@@ -1,27 +1,10 @@
-import asyncpgsa
-import pytest
 import sqlalchemy as sa
-
-from . import HOST, PORT, USER, PASS
-
-
-@pytest.fixture(scope='function')
-def pool(event_loop):
-    _pool = event_loop.run_until_complete(asyncpgsa.create_pool(host=HOST,
-                                                                port=PORT,
-                                                                database='postgres',
-                                                                user=USER,
-                                                                password=PASS,
-                                                                min_size=1,
-                                                                max_size=10))
-    yield _pool
 
 
 async def test_pool_basic(pool):
-    con = await pool.acquire()
-    result = await con.fetch('SELECT * FROM sqrt(16)')
-    assert result[0]['sqrt'] == 4.0
-    await pool.close()
+    async with pool.acquire() as con:
+        result = await con.fetch('SELECT * FROM sqrt(16)')
+        assert result[0]['sqrt'] == 4.0
 
 
 async def test_pool_connection_transaction_context_manager(pool):
