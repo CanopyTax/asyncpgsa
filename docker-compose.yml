@@ -16,8 +16,9 @@ services:
       - DB_NAME=postgres
       - DB_USER=postgres
       - DB_PASS=password
+      - PYTHONASYNCIODEBUG=1
   postgres:
-    image: postgres
+    image: postgres:9
     hostname: postgres
     environment:
       - POSTGRES_DB=postgres

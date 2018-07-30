@@ -1,4 +1,4 @@
-FROM python:3.6-alpine
+FROM python:3.7-alpine
 
 RUN apk update && \
     apk add \
@@ -6,5 +6,7 @@ RUN apk update && \
         musl-dev \
         postgresql-dev
 
-ADD . /repo
+ADD dev-requirements.txt /repo/dev-requirements.txt
 RUN pip install -r /repo/dev-requirements.txt
+
+ADD . /repo
