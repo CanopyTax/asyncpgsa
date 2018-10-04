@@ -6,6 +6,7 @@ from functools import partial
 
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.sql.ddl import CreateTable, DropTable
 
 from asyncpgsa import connection
 
@@ -125,3 +126,26 @@ def test_compile_jsonb_with_custom_json_encoder():
     q, p = connection.compile_query(query, dialect=dialect)
     assert q == 'INSERT INTO meowsb (data) VALUES ($1)'
     assert p == ['{"uuid4": "%s"}' % data['uuid4']]
+
+
+ddl_test_table = sa.Table(
+    'ddl_test_table', sa.MetaData(),
+    sa.Column('int_col', sa.Integer),
+    sa.Column('str_col', sa.String),
+)
+
+def test_compile_create_table_ddl():
+    create_statement = CreateTable(ddl_test_table)
+    result, params = connection.compile_query(create_statement)
+    assert result == (
+        '\nCREATE TABLE ddl_test_table (\n\tint_col'
+        ' INTEGER, \n\tstr_col VARCHAR\n)\n\n'
+    )
+    assert len(params) == 0
+
+
+def test_compile_drop_table_ddl():
+    drop_statement = DropTable(ddl_test_table)
+    drop_query, params = connection.compile_query(drop_statement)
+    assert drop_query == '\nDROP TABLE ddl_test_table'
+    assert len(params) == 0

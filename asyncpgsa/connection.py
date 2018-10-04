@@ -2,6 +2,7 @@ from asyncpg import connection
 from sqlalchemy.dialects.postgresql import pypostgresql
 from sqlalchemy.sql import ClauseElement
 from sqlalchemy.sql.dml import Insert as InsertObject, Update as UpdateObject
+from sqlalchemy.sql.ddl import DDLElement
 
 from .log import query_logger
 
@@ -54,6 +55,11 @@ def compile_query(query, dialect=_dialect, inline=False):
     if isinstance(query, str):
         query_logger.debug(query)
         return query, ()
+    elif isinstance(query, DDLElement):
+        compiled = query.compile(dialect=dialect)
+        new_query = compiled.string
+        query_logger.debug(new_query)
+        return new_query, ()
     elif isinstance(query, ClauseElement):
         query = execute_defaults(query)  # default values for Insert/Update
         compiled = query.compile(dialect=dialect)
