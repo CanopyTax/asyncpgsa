@@ -37,6 +37,10 @@ should be it. Then you can bind your sessions to the engine.
 
 This repo supports sqlalchemy core. Go [here](https://github.com/CanopyTax/asyncpgsa/wiki/Examples) for examples.
 
+## Docs
+
+Go [here](https://asyncpgsa.readthedocs.io/en/latest/) for docs.
+
 ## Examples
 Go [here](https://github.com/CanopyTax/asyncpgsa/wiki/Examples) for examples.
 
