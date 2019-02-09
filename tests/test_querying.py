@@ -5,7 +5,7 @@ import enum
 from uuid import uuid4
 from datetime import datetime, timedelta
 
-from sqlalchemy import Table, Column, MetaData, types
+from sqlalchemy import Table, Column, MetaData, types, Sequence
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.engine import create_engine
 
@@ -94,6 +94,7 @@ def test_querying_table(metadata):
     return Table(
         'test_querying_table_' + worker_id, metadata,
         Column('id', types.Integer, autoincrement=True, primary_key=True),
+        Column('serial', types.Integer, Sequence("serial_seq")),
         Column('t_string', types.String(60), onupdate='updated'),
         Column('t_list', types.ARRAY(types.String(60))),
         Column('t_enum', types.Enum(MyEnum)),
@@ -138,7 +139,12 @@ async def test_fetch_list(test_querying_table, connection):
 
     for item, sample_item in zip(data, SAMPLE_DATA):
         for key in sample_item.keys():
-            assert item[key] == sample_item[key]
+            if key == 'serial':
+                # Same increment as `id` column
+                expected = item['id']
+            else:
+                expected = sample_item[key]
+            assert item[key] == expected
 
 
 async def test_bound_parameters(test_querying_table, connection):
