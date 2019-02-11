@@ -2,7 +2,7 @@ import enum
 from uuid import uuid4, UUID
 from datetime import date, datetime, timedelta
 from asyncpgsa import connection
-from sqlalchemy import Table, Column, MetaData, types
+from sqlalchemy import Table, Column, MetaData, Sequence, types
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 metadata = MetaData()
@@ -32,6 +32,7 @@ t_boolean_default = True
 users = Table(
     'users', metadata,
     Column('id', PG_UUID, unique=True, default=uuid4),
+    Column('serial', types.Integer, Sequence("serial_seq")),
     Column('name', types.String(60), nullable=False,
            default=name_default),
     Column('t_list', types.ARRAY(types.String(60)), nullable=False,
@@ -58,6 +59,9 @@ users = Table(
 def test_insert_query_defaults():
     query = users.insert()
     new_query, new_params = connection.compile_query(query)
+    serial_default = query.parameters.get('serial')
+    assert serial_default.name == 'nextval'
+    assert serial_default.clause_expr.element.clauses[0].value == 'serial_seq'
     assert query.parameters.get('name') == name_default
     assert query.parameters.get('t_list') == t_list_default
     assert query.parameters.get('t_enum') == t_enum_default
@@ -74,6 +78,7 @@ def test_insert_query_defaults_override():
     query = users.insert()
     query = query.values(
         name='username',
+        serial=4444,
         t_list=['l1', 'l2'],
         t_enum=MyEnum.ITEM_1,
         t_int_enum=MyIntEnum.ITEM_2,
@@ -85,6 +90,7 @@ def test_insert_query_defaults_override():
     )
     new_query, new_params = connection.compile_query(query)
     assert query.parameters.get('version')
+    assert query.parameters.get('serial') == 4444
     assert query.parameters.get('name') == 'username'
     assert query.parameters.get('t_list') == ['l1', 'l2']
     assert query.parameters.get('t_enum') == MyEnum.ITEM_1
@@ -101,6 +107,7 @@ def test_update_query():
     query = users.update().where(users.c.name == 'default')
     query = query.values(
         name='newname',
+        serial=5555,
         t_list=['l3', 'l4'],
         t_enum=MyEnum.ITEM_1,
         t_int_enum=MyIntEnum.ITEM_2,
@@ -112,6 +119,7 @@ def test_update_query():
     )
     new_query, new_params = connection.compile_query(query)
     assert query.parameters.get('version')
+    assert query.parameters.get('serial') == 5555
     assert query.parameters.get('name') == 'newname'
     assert query.parameters.get('t_list') == ['l3', 'l4']
     assert query.parameters.get('t_enum') == MyEnum.ITEM_1

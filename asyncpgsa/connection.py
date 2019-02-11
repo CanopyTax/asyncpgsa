@@ -1,4 +1,5 @@
 from asyncpg import connection
+from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import pypostgresql
 from sqlalchemy.sql import ClauseElement
 from sqlalchemy.sql.dml import Insert as InsertObject, Update as UpdateObject
@@ -45,7 +46,9 @@ def _execute_default_attr(query, param, attr_name):
     for col in query.table.columns:
         attr = getattr(col, attr_name)
         if attr and param.get(col.name) is None:
-            if attr.is_scalar:
+            if attr.is_sequence:
+                param[col.name] = func.nextval(attr.name)
+            elif attr.is_scalar:
                 param[col.name] = attr.arg
             elif attr.is_callable:
                 param[col.name] = attr.arg({})
