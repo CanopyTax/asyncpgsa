@@ -9,9 +9,9 @@ completed_queries = []
 
 
 def __subclasscheck__(cls, subclass):
-        if subclass == MockConnection:
-            return True
-        return old_subclass_check(cls, subclass)
+    if subclass == MockConnection:
+        return True
+    return old_subclass_check(cls, subclass)
 
 old_subclass_check = ConnectionMeta.__subclasscheck__
 ConnectionMeta.__subclasscheck__ = __subclasscheck__
