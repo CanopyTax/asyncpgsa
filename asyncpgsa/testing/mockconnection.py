@@ -33,6 +33,11 @@ class MockConnection:
         global results
         results = result
 
+    def set_database_results(self, *dbresults):
+        self.results = Queue()
+        for result in dbresults:
+            self.results.put_nowait(result)
+
     async def general_query(self, query, *args, **kwargs):
         completed_queries.append((query, *args, kwargs))
         return results.get_nowait()
