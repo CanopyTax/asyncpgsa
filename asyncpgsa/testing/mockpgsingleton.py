@@ -16,7 +16,7 @@ class MockPG:
         self.__pool = MockSAPool(connection=self.connection)
 
     def get_completed_queries(self):
-        return self.connection.get_completed_queries
+        return self.connection.completed_queries
 
     def set_database_results(self, *results):
         self.connection.results = Queue()  # reset queue
@@ -57,5 +57,3 @@ class MockQueryContextManager:
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         pass
-
-

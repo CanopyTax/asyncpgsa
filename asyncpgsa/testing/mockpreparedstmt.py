@@ -26,6 +26,3 @@ class MockCursor:
             return next(self.iterator)
         except StopIteration:
             raise StopAsyncIteration
-
-
-

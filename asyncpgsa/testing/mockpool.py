@@ -57,5 +57,3 @@ class MockSAPool(Pool):
 
     async def close(self):
         pass
-
-

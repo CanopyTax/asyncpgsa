@@ -9,9 +9,9 @@ completed_queries = []
 
 
 def __subclasscheck__(cls, subclass):
-        if subclass == MockConnection:
-            return True
-        return old_subclass_check(cls, subclass)
+    if subclass == MockConnection:
+        return True
+    return old_subclass_check(cls, subclass)
 
 old_subclass_check = ConnectionMeta.__subclasscheck__
 ConnectionMeta.__subclasscheck__ = __subclasscheck__
@@ -32,6 +32,11 @@ class MockConnection:
     def results(self, result):
         global results
         results = result
+
+    def set_database_results(self, *dbresults):
+        self.results = Queue()
+        for result in dbresults:
+            self.results.put_nowait(result)
 
     async def general_query(self, query, *args, **kwargs):
         completed_queries.append((query, *args, kwargs))
