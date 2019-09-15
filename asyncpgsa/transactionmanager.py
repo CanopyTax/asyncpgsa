@@ -32,7 +32,11 @@ class ConnectionTransactionContextManager:
         self.acquire_context = self.pool.acquire(timeout=self.timeout)
         con = await self.acquire_context.__aenter__()
         self.transaction = con.transaction(**self.trans_kwargs)
-        await self.transaction.__aenter__()
+        try:
+            await self.transaction.__aenter__()
+        except Exception:
+            await asyncio.shield(self.acquire_context.__aexit__())
+            raise
         return con
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
