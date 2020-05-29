@@ -68,3 +68,7 @@ aiopg.sa: 9.541276566000306
 asyncpsa: 6.747777451004367
 ```
 So, seems like its still faster using asyncpg, or in otherwords, this library doesnt add any overhead that is not in aiopg.sa.
+
+## Versioning
+
+This software follows [Semantic Versioning](http://semver.org/).
