@@ -18,5 +18,12 @@ setup(
     license='Apache 2.0',
     author='nhumrich',
     author_email='nick.humrich@canopytax.com',
-    description='sqlalchemy support for asyncpg'
+    description='sqlalchemy support for asyncpg',
+    classifiers=[
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: Implementation :: CPython",
+    ],
 )
