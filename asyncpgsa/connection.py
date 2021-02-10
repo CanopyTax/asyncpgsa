@@ -88,11 +88,12 @@ class SAConnection(connection.Connection):
         super().__init__(*args, **kwargs)
         self._dialect = dialect or _dialect
 
-    def _execute(self, query, args, limit, timeout, return_status=False):
+    def _execute(self, query, args, limit, timeout, return_status=False, record_class=None):
         query, compiled_args = compile_query(query, dialect=self._dialect)
         args = compiled_args or args
         return super()._execute(query, args, limit, timeout,
-                                return_status=return_status)
+                                return_status=return_status,
+                                record_class=record_class)
 
     async def execute(self, script, *args, **kwargs) -> str:
         script, params = compile_query(script, dialect=self._dialect)
