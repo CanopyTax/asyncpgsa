@@ -23,6 +23,7 @@ for columns is no longer possible and you need to access columns using exact nam
 
 3. 0.18.0 Removed the `insert` method. We found this method was just confusing, and useless as SqlAlchemy can do it for you by defining your table with a primary key.
 
+4. 0.27.0 Now only compatible with version 0.22.0 and greater of asyncpg.
 
 ## sqlalchemy ORM
 
