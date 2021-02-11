@@ -93,7 +93,8 @@ class SAConnection(connection.Connection):
         args = compiled_args or args
         return super()._execute(query, args, limit, timeout,
                                 return_status=return_status,
-                                record_class=record_class)
+                                record_class=record_class,
+                                ignore_custom_codec=ignore_custom_codec)
 
     async def execute(self, script, *args, **kwargs) -> str:
         script, params = compile_query(script, dialect=self._dialect)
