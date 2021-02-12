@@ -7,14 +7,12 @@ dist: xenial
 sudo: true
 
 python:
-  - "3.5"
-  - "3.6"
   - "3.7"
+  - "3.8"
+  - "3.9"
 
 env:
-  - ASYNCPG_VERSION=0.15.0
-  - ASYNCPG_VERSION=0.16.0
-  - ASYNCPG_VERSION=0.17.0
+  - ASYNCPG_VERSION=0.22.0
 
 # command to install dependencies
 install:

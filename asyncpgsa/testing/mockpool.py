@@ -1,4 +1,5 @@
 from asyncpgsa import compile_query
+from asyncpg import protocol
 from asyncpg.pool import Pool
 
 from .mockconnection import MockConnection
@@ -14,7 +15,8 @@ class MockSAPool(Pool):
                          setup=None,
                          loop=None,
                          init=None,
-                         connection_class=MockConnection)
+                         connection_class=MockConnection,
+                         record_class=protocol.Record)
 
         self.connection = connection
         if not self.connection:
