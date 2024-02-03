@@ -12,8 +12,7 @@ class ConnectionTransactionContextManager:
 
     """
 
-    __slots__ = ('pool', 'acquire_context', 'transaction',
-                 'timeout', 'trans_kwargs')
+    __slots__ = ("pool", "acquire_context", "transaction", "timeout", "trans_kwargs")
 
     def __init__(self, pool, timeout=None, **kwargs):
         self.pool = pool

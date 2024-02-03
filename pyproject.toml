@@ -52,7 +52,15 @@ dependencies = [
 test = "pytest ./tests -s -vvv --log-level=DEBUG"
 check = [
     "ruff format --check asyncpgsa docs tests",
+    "ruff asyncpgsa docs tests",
 ]
 lint = [
     "ruff format asyncpgsa docs tests",
+    "ruff --fix asyncpgsa docs tests",
+]
+
+[tool.ruff.lint]
+# For reference, see https://docs.astral.sh/ruff/rules/
+select = [
+    "I",  # `isort`
 ]

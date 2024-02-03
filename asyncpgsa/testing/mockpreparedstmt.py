@@ -1,5 +1,3 @@
-
-
 class MockPreparedStatement:
     def __init__(self, connection, query, state):
         self._connection = connection
@@ -10,8 +8,7 @@ class MockPreparedStatement:
         return MockCursor(self._connection.results.get_nowait())
 
     def __getattr__(self, item):
-        raise NotImplementedError('Sorry, this doesnt exist yet. '
-                                  'Consider making a PR.')
+        raise NotImplementedError("Sorry, this doesnt exist yet. Consider making a PR.")
 
 
 class MockCursor:

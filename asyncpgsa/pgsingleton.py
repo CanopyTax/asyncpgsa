@@ -1,5 +1,6 @@
-from .pool import create_pool
 from .connection import compile_query
+from .pool import create_pool
+
 """
 this is a high level singleton for managing a pool
 """
@@ -10,7 +11,7 @@ class NotInitializedError(Exception):
 
 
 class PG:
-    __slots__ = ('__pool',)
+    __slots__ = ("__pool",)
 
     def __init__(self):
         self.__pool = None
@@ -18,11 +19,12 @@ class PG:
     @property
     def pool(self):
         if not self.__pool:
-            raise NotInitializedError('pg.init() needs to be called '
-                                      'before you can make queries')
+            raise NotInitializedError(
+                "pg.init() needs to be called before you can make queries"
+            )
         else:
             return self.__pool
-        
+
     @property
     def initialized(self):
         return bool(self.__pool)
@@ -65,8 +67,13 @@ class PG:
         compiled_q, compiled_args = compile_query(query)
         query, args = compiled_q, compiled_args or args
 
-        return QueryContextManager(self.pool, query, args,
-                                   prefetch=prefetch, timeout=timeout)
+        return QueryContextManager(
+            self.pool,
+            query,
+            args,
+            prefetch=prefetch,
+            timeout=timeout,
+        )
 
     async def fetch(self, query, *args, timeout=None):
         async with self.pool.acquire() as conn:
@@ -78,20 +85,15 @@ class PG:
 
     async def fetchval(self, query, *args, timeout=None, column=0):
         async with self.pool.acquire() as conn:
-            return await conn.fetchval(
-                query, *args, column=column, timeout=timeout)
+            return await conn.fetchval(query, *args, column=column, timeout=timeout)
 
     async def execute(self, *args, **kwargs):
         async with self.pool.acquire() as conn:
             return await conn.execute(*args, **kwargs)
 
-    async def insert(self, *args, id_col_name: str = 'id',
-                     timeout=None):
+    async def insert(self, *args, id_col_name: str = "id", timeout=None):
         async with self.pool.acquire() as conn:
-            return await conn.insert(
-                *args,
-                id_col_name=id_col_name,
-                timeout=timeout)
+            return await conn.insert(*args, id_col_name=id_col_name, timeout=timeout)
 
     def transaction(self, **kwargs):
         # not async because this returns a context manager
@@ -105,11 +107,9 @@ class PG:
 
 
 class QueryContextManager:
-    __slots__ = ('pool', 'query', 'args', 'prefetch', 'timeout', 'cursor',
-                 '_con')
+    __slots__ = ("pool", "query", "args", "prefetch", "timeout", "cursor", "_con")
 
-    def __init__(self, pool, query, args=None,
-                 prefetch=None, timeout=None):
+    def __init__(self, pool, query, args=None, prefetch=None, timeout=None):
         self.pool = pool
         self.cursor = None
         self.query = query
@@ -125,12 +125,14 @@ class QueryContextManager:
         pass
 
     async def __aenter__(self):
-        self._con = self.pool.transaction(readonly=True,
-                                            isolation='serializable')
+        self._con = self.pool.transaction(readonly=True, isolation="serializable")
         con = await self._con.__aenter__()
         ps = await con.prepare(self.query, timeout=self.timeout)
-        self.cursor = ps.cursor(*self.args, prefetch=self.prefetch,
-                                timeout=self.timeout)
+        self.cursor = ps.cursor(
+            *self.args,
+            prefetch=self.prefetch,
+            timeout=self.timeout,
+        )
         return CursorInterface(self.cursor)
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -147,7 +149,7 @@ class QueryContextManager:
 
 
 class CursorIterator:
-    __slots__ = ('iterator',)
+    __slots__ = ("iterator",)
 
     def __init__(self, iterator):
         self.iterator = iterator
@@ -163,7 +165,7 @@ class CursorIterator:
 
 
 class CursorInterface:
-    __slots__ = ('cursor', 'query')
+    __slots__ = ("cursor", "query")
 
     def __init__(self, cursor, query=None):
         self.cursor = cursor
@@ -179,6 +181,4 @@ class CursorInterface:
         if self.query:
             self.query.__aexit(exc_type, exc_val, exc_tb)
         else:
-            raise AttributeError('you shouldnt be here')
-
-
+            raise AttributeError("you shouldnt be here")

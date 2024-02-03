@@ -2,14 +2,15 @@ from asyncpg import connection
 from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import pypostgresql
 from sqlalchemy.sql import ClauseElement
-from sqlalchemy.sql.dml import Insert as InsertObject, Update as UpdateObject
 from sqlalchemy.sql.ddl import DDLElement
+from sqlalchemy.sql.dml import Insert as InsertObject
+from sqlalchemy.sql.dml import Update as UpdateObject
 
 from .log import query_logger
 
 
 def get_dialect(**kwargs):
-    dialect = pypostgresql.dialect(paramstyle='pyformat', **kwargs)
+    dialect = pypostgresql.dialect(paramstyle="pyformat", **kwargs)
 
     dialect.implicit_returning = True
     dialect.supports_native_enum = True
@@ -26,9 +27,9 @@ _dialect = get_dialect()
 
 def execute_defaults(query):
     if isinstance(query, InsertObject):
-        attr_name = 'default'
+        attr_name = "default"
     elif isinstance(query, UpdateObject):
-        attr_name = 'onupdate'
+        attr_name = "onupdate"
     else:
         return query
 
@@ -68,13 +69,16 @@ def compile_query(query, dialect=_dialect, inline=False):
         compiled = query.compile(dialect=dialect)
         compiled_params = sorted(compiled.params.items())
 
-        mapping = {key: '$' + str(i)
-                   for i, (key, _) in enumerate(compiled_params, start=1)}
+        mapping = {
+            key: "$" + str(i) for i, (key, _) in enumerate(compiled_params, start=1)
+        }
         new_query = compiled.string % mapping
 
         processors = compiled._bind_processors
-        new_params = [processors[key](val) if key in processors else val
-                      for key, val in compiled_params]
+        new_params = [
+            processors[key](val) if key in processors else val
+            for key, val in compiled_params
+        ]
 
         query_logger.debug(new_query)
 
@@ -88,13 +92,27 @@ class SAConnection(connection.Connection):
         super().__init__(*args, **kwargs)
         self._dialect = dialect or _dialect
 
-    def _execute(self, query, args, limit, timeout, return_status=False, record_class=None, ignore_custom_codec=False):
+    def _execute(
+        self,
+        query,
+        args,
+        limit,
+        timeout,
+        return_status=False,
+        record_class=None,
+        ignore_custom_codec=False,
+    ):
         query, compiled_args = compile_query(query, dialect=self._dialect)
         args = compiled_args or args
-        return super()._execute(query, args, limit, timeout,
-                                return_status=return_status,
-                                record_class=record_class,
-                                ignore_custom_codec=ignore_custom_codec)
+        return super()._execute(
+            query,
+            args,
+            limit,
+            timeout,
+            return_status=return_status,
+            record_class=record_class,
+            ignore_custom_codec=ignore_custom_codec,
+        )
 
     async def execute(self, script, *args, **kwargs) -> str:
         script, params = compile_query(script, dialect=self._dialect)
