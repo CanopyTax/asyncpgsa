@@ -26,9 +26,12 @@ t_enum_default = MyEnum.ITEM_2
 t_int_enum_default = MyIntEnum.ITEM_1
 t_datetime_default = datetime(2017, 1, 1)
 t_date_default = date(2017, 1, 1)
-t_date_2_default = lambda: date(2017, 2, 1)
 t_interval_default = timedelta(seconds=60)
 t_boolean_default = True
+
+
+def t_date_default_func():
+    return date(2017, 2, 1)
 
 
 users = Table(
@@ -52,7 +55,7 @@ users = Table(
     ),
     Column("t_datetime", types.DateTime(), nullable=False, default=t_datetime_default),
     Column("t_date", types.DateTime(), nullable=False, default=t_date_default),
-    Column("t_date_2", types.DateTime(), nullable=False, default=t_date_2_default),
+    Column("t_date_2", types.DateTime(), nullable=False, default=t_date_default_func),
     Column("t_interval", types.Interval(), nullable=False, default=t_interval_default),
     Column("t_boolean", types.Boolean(), nullable=False, default=True),
     Column("version", PG_UUID, default=uuid4, onupdate=uuid4),
@@ -71,7 +74,7 @@ def test_insert_query_defaults():
     assert query.parameters.get("t_int_enum") == t_int_enum_default
     assert query.parameters.get("t_datetime") == t_datetime_default
     assert query.parameters.get("t_date") == t_date_default
-    assert query.parameters.get("t_date_2") == t_date_2_default()
+    assert query.parameters.get("t_date_2") == t_date_default_func()
     assert query.parameters.get("t_interval") == t_interval_default
     assert isinstance(query.parameters.get("version"), UUID)
     assert query.parameters.get("t_boolean") == t_boolean_default
@@ -102,7 +105,7 @@ def test_insert_query_defaults_override():
     assert query.parameters.get("t_date") == date(2020, 1, 1)
     assert query.parameters.get("t_date_2") == date(2020, 1, 1)
     assert query.parameters.get("t_interval") == timedelta(seconds=120)
-    assert query.parameters.get("t_boolean") == False
+    assert query.parameters.get("t_boolean") is False
     assert isinstance(query.parameters.get("version"), UUID)
 
 
@@ -131,5 +134,5 @@ def test_update_query():
     assert query.parameters.get("t_date") == date(2030, 1, 1)
     assert query.parameters.get("t_date_2") == date(2030, 1, 1)
     assert query.parameters.get("t_interval") == timedelta(seconds=180)
-    assert query.parameters.get("t_boolean") == False
+    assert query.parameters.get("t_boolean") is False
     assert isinstance(query.parameters.get("version"), UUID)

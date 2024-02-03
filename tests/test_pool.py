@@ -1,3 +1,4 @@
+import pytest
 import sqlalchemy as sa
 
 
@@ -61,16 +62,12 @@ async def test_use_sa_core_objects(pool):
 
 
 async def test_with_without_async_should_throw_exception(pool):
-    try:
-        with pool.transaction() as conn:
-            result = await conn.fetch("SELECT * FROM sqrt(16)")
-
-        raise Exception("Should have thrown RuntimeError")
-    except RuntimeError as e:
-        assert str(e) == 'Must use "async with" for a transaction'
+    with pytest.raises(RuntimeError, match='Must use "async with" for a transaction'):
+        with pool.transaction():
+            pass
 
 
 async def test_falsyness_of_rows_on_fetch(pool):
     async with pool.acquire() as conn:
-        rows = await conn.fetch("SELECT * FROM pg_stat_activity " "WHERE pid=400")
-        assert bool(rows) == False
+        rows = await conn.fetch("SELECT * FROM pg_stat_activity WHERE pid=400")
+        assert bool(rows) is False

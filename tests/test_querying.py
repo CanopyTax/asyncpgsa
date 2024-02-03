@@ -6,10 +6,7 @@ from uuid import uuid4
 import pytest
 from sqlalchemy import Column, MetaData, Sequence, Table, types
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
-from sqlalchemy.engine import create_engine
 from sqlalchemy.sql.ddl import CreateSequence, CreateTable, DropSequence, DropTable
-
-from . import URL
 
 
 class MyEnum(enum.Enum):
@@ -121,10 +118,9 @@ def create_test_querying_table(test_querying_table, connection, event_loop):
     """
 
     async def create_enum(enum_cls):
-        labels = [str(e.value) for e in enum_cls]  # Enum labels are always strings
+        labels = [f"'{e.value}'" for e in enum_cls]  # Enum labels are always strings
         await connection.execute(
-            f"CREATE TYPE {enum_cls.__name__.lower()} "
-            f"AS ENUM ({', '.join(repr(l) for l in labels)})"
+            f"CREATE TYPE {enum_cls.__name__.lower()} " f"AS ENUM ({', '.join(labels)})"
         )
 
     async def drop_enum(enum_cls):

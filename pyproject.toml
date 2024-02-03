@@ -62,5 +62,8 @@ lint = [
 [tool.ruff.lint]
 # For reference, see https://docs.astral.sh/ruff/rules/
 select = [
+    "F",  # pyflakes
+    "E", "W",  # pycodestyle
     "I",  # `isort`
+    # TODO: Consider adding other rules
 ]
