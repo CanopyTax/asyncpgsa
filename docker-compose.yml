@@ -1,26 +1,26 @@
-version: "3"
+version: "3.8"
 
 services:
   tests:
-    build:
-      context: .
-    working_dir: /repo
+    build: .
     command: pytest ./tests -s -vvv --log-level=DEBUG
     depends_on:
       - postgres
-    links:
-      - postgres
     environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=postgres
-      - DB_USER=postgres
-      - DB_PASS=password
-      - PYTHONASYNCIODEBUG=1
+      PYTHONASYNCIODEBUG: 1
+
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: postgres
+      DB_USER: postgres
+      DB_PASS: password
+
   postgres:
-    image: postgres:13
-    hostname: postgres
+    image: postgres:16-alpine
+    ports:
+      # Run `docker compose port postgres 5432` to get local port
+      - "5432"
     environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password

@@ -11,7 +11,7 @@ setup(
     version=version['__version__'],
     install_requires=[
         'asyncpg>=0.22.0',
-        'sqlalchemy',
+        'sqlalchemy',  # FIXME: Pin to <1.4
     ],
     packages=['asyncpgsa', 'asyncpgsa.testing'],
     url='https://github.com/canopytax/asyncpgsa',

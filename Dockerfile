@@ -1,12 +1,15 @@
-FROM python:3.8-alpine
+# syntax = docker/dockerfile:1.6
 
-RUN apk update && \
-    apk add \
-    gcc \
-    musl-dev \
-    postgresql-dev
+FROM python:3.7-slim
 
-ADD dev-requirements.txt /repo/dev-requirements.txt
-RUN pip install -r /repo/dev-requirements.txt
+WORKDIR /repo/
 
-ADD . /repo
+COPY dev-requirements.txt ./
+RUN --mount=type=cache,target=/root/.cache \
+    pip install -r dev-requirements.txt
+
+COPY asyncpgsa ./asyncpgsa
+COPY docs ./docs
+COPY tests ./tests
+COPY setup.py ./
+RUN pip install -e .
