@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import Table, Column, MetaData, types, Sequence
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.engine import create_engine
+from sqlalchemy.sql.ddl import CreateTable, DropTable, CreateSequence, DropSequence
 
 from . import URL
 
@@ -75,9 +76,7 @@ MROW_SAMPLE_DATA = [
 
 @pytest.fixture(scope='module')
 def metadata():
-    metadata = MetaData()
-    metadata.bind = create_engine(URL)
-    return metadata
+    return MetaData()
 
 
 @pytest.fixture(scope='module')
@@ -107,7 +106,7 @@ def test_querying_table(metadata):
 
 
 @pytest.fixture(autouse=True)
-def create_test_querying_table(test_querying_table):
+def create_test_querying_table(test_querying_table, connection, event_loop):
     """
     This fixture creates table before each test function in this module and
     drops it after.
@@ -119,12 +118,27 @@ def create_test_querying_table(test_querying_table):
     handle table creations.
 
     """
+    async def create_enum(enum_cls):
+        labels = [str(e.value) for e in enum_cls]  # Enum labels are always strings
+        await connection.execute(
+            f"CREATE TYPE {enum_cls.__name__.lower()} "
+            f"AS ENUM ({', '.join(repr(l) for l in labels)})"
+        )
 
-    test_querying_table.create()
+    async def drop_enum(enum_cls):
+        await connection.execute(f"DROP TYPE {enum_cls.__name__.lower()}")
+
+    event_loop.run_until_complete(create_enum(MyEnum))
+    event_loop.run_until_complete(create_enum(MyIntEnum))
+    event_loop.run_until_complete(connection.execute(CreateSequence(Sequence("serial_seq"))))
+    event_loop.run_until_complete(connection.execute(CreateTable(test_querying_table)))
     try:
         yield
     finally:
-        test_querying_table.drop()
+        event_loop.run_until_complete(connection.execute(DropTable(test_querying_table)))
+        event_loop.run_until_complete(connection.execute(DropSequence(Sequence("serial_seq"))))
+        event_loop.run_until_complete(drop_enum(MyIntEnum))
+        event_loop.run_until_complete(drop_enum(MyEnum))
 
 
 async def test_fetch_list(test_querying_table, connection):

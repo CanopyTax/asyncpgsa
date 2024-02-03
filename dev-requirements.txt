@@ -2,4 +2,3 @@ asyncpg
 pytest
 pytest-asyncio
 sqlalchemy
-psycopg2-binary
