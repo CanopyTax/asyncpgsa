@@ -1,9 +1,9 @@
 version: "3.8"
 
 services:
-  tests:
+  lib:
     build: .
-    command: pytest ./tests -s -vvv --log-level=DEBUG
+    entrypoint: hatch
     depends_on:
       - postgres
     environment:
@@ -14,6 +14,8 @@ services:
       DB_NAME: postgres
       DB_USER: postgres
       DB_PASS: password
+    volumes:
+      - .:/repo
 
   postgres:
     image: postgres:16-alpine

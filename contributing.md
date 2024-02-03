@@ -1,30 +1,28 @@
-# Install
+# Installation
 
-you will need to clone the directory first, 
+Local development uses `hatch` project manager, please refer to the [docs](https://hatch.pypa.io/)
+on how to install it. After you have `hatch` installed, any command you run will
+install the dependencies in a virtual environment automatically. You can "force"
+the installation by running `hatch run true` in the root of the project.
 
-then, you need to install dependencies
+If you want to test the package against another project, you can install it in
+development mode:
 
-```
-pip install -r dev-requirements.txt
-```
-
-and lastly install library as a local dependency
-
-```
-pip install -e .
+```bash
+pip install -e /path/to/asyncpgsa
 ```
 
-You can now use `import asyncpgsa` from other code bases and it will use the
-version you have locally
+You can now use `import asyncpgsa` from other code bases, and it will use the
+version you have locally.
 
-# tests
+# Testing
 
 We use [pytest](https://docs.pytest.org/en/latest/) for tests.
 
 The easiest and recommended way to run test suite is to use `docker compose`:
 
 ```
-docker compose up --force-recreate --build
+docker compose run --rm lib test
 ```
 
 Otherwise, you need a local postgres running. It can be launched with
@@ -38,7 +36,7 @@ docker compose port postgres 5432  # Will echo `0.0.0.0:<port>`
 Then, the tests can be run locally as:
 
 ```
-DB_PORT=<port> pytest ./tests
+DB_PORT=<port> hatch run test
 ```
 
 Of course if you are running docker in a VM, like on a mac or windows 

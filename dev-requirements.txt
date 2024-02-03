@@ -1,4 +1,0 @@
-asyncpg
-pytest
-pytest-asyncio
-sqlalchemy <1.4  # TODO: Unpin when SQLAlchemy 1.4 is supported
