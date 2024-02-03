@@ -15,6 +15,22 @@ pip install -e /path/to/asyncpgsa
 You can now use `import asyncpgsa` from other code bases, and it will use the
 version you have locally.
 
+# Linting
+
+To run linters on your host machine, you can use `hatch`:
+
+```bash
+hatch run lint   # Runs linters and auto-fixes what's possible
+hatch run check  # Runs linters
+```
+
+or you can run linters in a docker container using `docker compose`:
+
+```bash
+docker compose run --rm lib run lint
+docker compose run --rm lib run check
+```
+
 # Testing
 
 We use [pytest](https://docs.pytest.org/en/latest/) for tests.
@@ -22,7 +38,7 @@ We use [pytest](https://docs.pytest.org/en/latest/) for tests.
 The easiest and recommended way to run test suite is to use `docker compose`:
 
 ```
-docker compose run --rm lib test
+docker compose run --rm lib run test
 ```
 
 Otherwise, you need a local postgres running. It can be launched with

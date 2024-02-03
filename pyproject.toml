@@ -43,9 +43,16 @@ include = [
 [tool.hatch.envs.default]
 python = "3.7"
 dependencies = [
+    "ruff",
     "pytest",
     "pytest-asyncio",
     "sqlalchemy < 1.4",  # TODO: Unpin, when 1.4+ will be supported
 ]
 [tool.hatch.envs.default.scripts]
 test = "pytest ./tests -s -vvv --log-level=DEBUG"
+check = [
+    "ruff format --check asyncpgsa docs tests",
+]
+lint = [
+    "ruff format asyncpgsa docs tests",
+]
