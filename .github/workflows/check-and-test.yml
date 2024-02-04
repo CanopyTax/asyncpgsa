@@ -1,0 +1,75 @@
+name: check-and-test
+
+on:
+  # XXX: Run on `master` only?
+  - push
+  - pull_request
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.7"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install -U pip
+          pip install hatch
+          hatch run true  # So that hatch syncs dependencies
+
+      - name: Run checks
+        run: hatch run check
+
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ "3.7", "3.8", "3.9", "3.10", "3.11", "3.12" ]
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: "postgres"
+          POSTGRES_PASSWORD: "postgres"
+          POSTGRES_DB: "asyncpgsa_test"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432  # Job does not run in container, so we need to expose the port
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install -U pip
+          pip install hatch
+          hatch run +py=${{ matrix.python-version }} test:true  # So that hatch syncs dependencies
+
+      - name: Run tests
+        run: hatch run +py=${{ matrix.python-version }} test:test
+        env:
+          DB_USER: "postgres"
+          DB_PASS: "postgres"
+          DB_HOST: "localhost"
+          DB_PORT: "5432"
+          DB_NAME: "asyncpgsa_test"
