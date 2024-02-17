@@ -12,10 +12,11 @@ def pytest_pycollect_makeitem(collector, name, obj):
         return list(collector._genfunctions(name, obj))
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def pool(event_loop):
     from asyncpgsa import create_pool
-    from . import HOST, PORT, USER, PASS, DB_NAME
+
+    from . import DB_NAME, HOST, PASS, PORT, USER
 
     pool = create_pool(
         min_size=1,
@@ -26,7 +27,7 @@ def pool(event_loop):
         password=PASS,
         database=DB_NAME,
         timeout=1,
-        loop=event_loop
+        loop=event_loop,
     )
 
     event_loop.run_until_complete(pool)
@@ -37,7 +38,7 @@ def pool(event_loop):
         event_loop.run_until_complete(pool.close())
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def connection(pool, event_loop):
     conn = event_loop.run_until_complete(pool.acquire(timeout=2))
 

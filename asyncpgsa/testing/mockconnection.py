@@ -13,6 +13,7 @@ def __subclasscheck__(cls, subclass):
         return True
     return old_subclass_check(cls, subclass)
 
+
 old_subclass_check = ConnectionMeta.__subclasscheck__
 ConnectionMeta.__subclasscheck__ = __subclasscheck__
 
@@ -59,4 +60,5 @@ class MockConnection:
     def __await__(self):
         async def get_conn():
             return self
+
         return get_conn()

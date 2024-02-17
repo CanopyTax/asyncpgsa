@@ -3,13 +3,12 @@ from asyncio import Queue
 from asyncpgsa.connection import compile_query
 from asyncpgsa.pgsingleton import CursorInterface
 
-from .mockpool import MockSAPool
 from .mockconnection import MockConnection
+from .mockpool import MockSAPool
 
 
 class MockPG:
     def __init__(self):
-
         # connection_class = SAConnection
         # self.connection = connection_class()
         self.connection = MockConnection()
@@ -30,7 +29,7 @@ class MockPG:
         return MockQueryContextManager(self.connection, query, args)
 
     def __getattr__(self, item):
-        if item in ('execute', 'fetch', 'fetchval', 'fetchrow'):
+        if item in ("execute", "fetch", "fetchval", "fetchrow"):
             return getattr(self.connection, item)
 
     def transaction(self, **kwargs):

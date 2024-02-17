@@ -1,0 +1,72 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "asyncpgsa"
+description = "sqlalchemy support for asyncpg"
+readme = "README.md"
+requires-python = ">=3.7"  # FIXME: Drop support for 3.7, it reached EOL
+license = "Apache-2.0"
+authors = [
+  { name = "nhumrich", email = "nick.humrich@canopytax.com" },
+]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    # FIXME: Update versions to 3.8…3.12
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: Implementation :: CPython",
+]
+dependencies = [
+    "asyncpg >= 0.22.0",
+    "sqlalchemy",  # FIXME: Pin to `<1.4`
+]
+dynamic = ["version"]
+
+[project.urls]
+Source = "https://github.com/canopytax/asyncpgsa"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build]
+include = [
+    "/asyncpgsa/**/*.py",
+]
+
+[tool.hatch.build.targets.sdist]
+[tool.hatch.build.targets.wheel]
+
+[tool.hatch.envs.default]
+python = "3.7"
+dependencies = [
+    "ruff",
+    "pytest",
+    "pytest-asyncio",
+    "sqlalchemy < 1.4",  # TODO: Unpin, when 1.4+ will be supported
+]
+[tool.hatch.envs.default.scripts]
+test = "pytest ./tests -s -vvv --log-level=DEBUG"
+check = [
+    "ruff format --check asyncpgsa docs tests",
+    "ruff asyncpgsa docs tests",
+]
+lint = [
+    "ruff format asyncpgsa docs tests",
+    "ruff --fix asyncpgsa docs tests",
+]
+
+[[tool.hatch.envs.test.matrix]]
+python = ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+
+[tool.ruff.lint]
+# For reference, see https://docs.astral.sh/ruff/rules/
+select = [
+    "F",  # pyflakes
+    "E", "W",  # pycodestyle
+    "I",  # `isort`
+    # TODO: Consider adding other rules
+]

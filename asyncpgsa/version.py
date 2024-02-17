@@ -1,1 +1,1 @@
-__version__ = '0.27.1'
+__version__ = "unknown"  # No longer maintained, version is fetched from VSC

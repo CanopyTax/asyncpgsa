@@ -1,5 +1,3 @@
-
-
 class MockTransactionManager:
     def __init__(self, pool, connection):
         self.pool = pool
